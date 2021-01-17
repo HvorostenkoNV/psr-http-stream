@@ -1,6 +1,6 @@
 {
   "name": "hnv/psr-http-stream",
-  "description": "PSR-7 URI implementation package",
+  "description": "PSR-7 stream implementation package",
   "keywords": [
     "psr-7",
     "stream"
@@ -20,12 +20,12 @@
   },
   "autoload": {
     "psr-4": {
-      "HNV\\Http\\Uri\\": "src/"
+      "HNV\\Http\\Stream\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "HNV\\Http\\UriTests\\": "tests/"
+      "HNV\\Http\\StreamTests\\": "tests/"
     }
   }
 }
