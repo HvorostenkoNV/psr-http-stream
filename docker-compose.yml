@@ -1,0 +1,17 @@
+version: '3'
+
+networks:
+  psr-http-stream:
+
+services:
+  php:
+    image: jorge07/alpine-php:${PHP_VERSION}-dev
+    container_name: psr-http-stream-php
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "9000:9000"
+      - "${SSH_PORT}:22"
+    working_dir: /var/www/html
+    networks:
+      - psr-http-stream
