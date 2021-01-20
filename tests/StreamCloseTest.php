@@ -101,14 +101,13 @@ class StreamCloseTest extends TestCase
      ************************************************************************/
     public function dataProviderResources(): array
     {
-        $modes  = array_diff(
-            AccessModeReadableAndWritable::get(),
-            AccessModeNonSuitable::get()
-        );
-        $result = [];
+        $modesReadableAndWritable   = AccessModeReadableAndWritable::get();
+        $modesNonSuitable           = AccessModeNonSuitable::get();
+        $result                     = [];
 
-        foreach ($modes as $mode) {
-            $result[] = [(new ResourceGenerator($mode))->generate()];
+        foreach (array_diff($modesReadableAndWritable, $modesNonSuitable) as $mode) {
+            $resource   = (new ResourceGenerator($mode))->generate();
+            $result[]   = [$resource];
         }
 
         return $result;

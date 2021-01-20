@@ -104,7 +104,8 @@ class StreamDetachTest extends TestCase
         $result                     = [];
 
         foreach (array_diff($modesReadableAndWritable, $modesNonSuitable) as $mode) {
-            $result[] = [(new ResourceGenerator($mode))->generate()];
+            $resource   = (new ResourceGenerator($mode))->generate();
+            $result[]   = [$resource];
         }
 
         return $result;
