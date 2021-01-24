@@ -4,48 +4,50 @@ declare(strict_types=1);
 namespace HNV\Http\StreamTests;
 
 use Throwable;
+use RuntimeException;
 use PHPUnit\Framework\TestCase;
 use HNV\Http\StreamTests\Generator\Resource\All as ResourceGeneratorAll;
 use HNV\Http\Stream\Stream;
 
-use function is_resource;
+use function ftell;
 /** ***********************************************************************************************
  * PSR-7 StreamInterface implementation test.
  *
- * Testing stream closing behavior.
+ * Testing stream rewinding behavior.
  *
  * @package HNV\Psr\Http\Tests\Stream
  * @author  Hvorostenko
  *************************************************************************************************/
-class StreamCloseTest extends TestCase
+class StreamRewindTest extends TestCase
 {
     /** **********************************************************************
-     * Test "Stream::close" closes underlying resource.
+     * Test "Stream::rewind" seeks the stream to the beginning.
      *
-     * @covers          Stream::close
-     * @dataProvider    dataProviderResources
+     * @covers          Stream::rewind
+     * @dataProvider    dataProviderResourcesSeekable
      *
      * @param           resource $resource              Recourse.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testClose($resource): void
+    public function testRewind($resource): void
     {
         $stream = new Stream($resource);
-        $stream->close();
+        $stream->rewind();
 
-        self::assertFalse(
-            is_resource($resource),
-            "Action \"Stream->close\" showed unexpected behavior.\n".
-            "Expects underlying resource will be closed\n".
-            'Expects underlying resource is not closed'
+        self::assertEquals(
+            0,
+            ftell($resource),
+            "Action \"Stream->rewind\" showed unexpected behavior.\n".
+            "Expects underlying resource is \"seeked to the beginning\".\n".
+            "Underlying resource is \"NOT rewound\"."
         );
     }
     /** **********************************************************************
-     * Test "Stream::close" DO NOT closes underlying resource, if stream is detached.
+     * Test "Stream::rewind" behavior with stream in a closed state.
      *
-     * @covers          Stream::close
+     * @covers          Stream::rewind
      * @dataProvider    dataProviderResources
      *
      * @param           resource $resource              Recourse.
@@ -53,23 +55,24 @@ class StreamCloseTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testCloseOnDetachedResource($resource): void
+    public function testRewindInClosedState($resource): void
     {
-        $stream             = new Stream($resource);
-        $resourceDetached   = $stream->detach();
-        $stream->close();
+        $this->expectException(RuntimeException::class);
 
-        self::assertTrue(
-            is_resource($resourceDetached),
-            "Action \"Stream->detach->close\" showed unexpected behavior.\n".
-            "Expects underlying resource will be NOT closed\n".
-            'Expects underlying resource is closed'
+        $stream = new Stream($resource);
+        $stream->close();
+        $stream->rewind();
+
+        self::fail(
+            "Action \"Stream->close->rewind\" threw no expected exception.\n".
+            "Expects \"RuntimeException\" exception.\n".
+            'Caught no exception.'
         );
     }
     /** **********************************************************************
-     * Test "Stream::__destruct" closes underlying resource.
+     * Test "Stream::rewind" behavior with stream in a detached state.
      *
-     * @covers          Stream::__destruct
+     * @covers          Stream::rewind
      * @dataProvider    dataProviderResources
      *
      * @param           resource $resource              Recourse.
@@ -77,16 +80,18 @@ class StreamCloseTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testDestructorClosesResource($resource): void
+    public function testRewindInDetachedState($resource): void
     {
-        $stream = new Stream($resource);
-        unset($stream);
+        $this->expectException(RuntimeException::class);
 
-        self::assertFalse(
-            is_resource($resource),
-            "Action \"Stream->__destruct\" showed unexpected behavior.\n".
-            "Expects underlying resource will be closed\n".
-            'Expects underlying resource is not closed'
+        $stream = new Stream($resource);
+        $stream->detach();
+        $stream->rewind();
+
+        self::fail(
+            "Action \"Stream->detach->rewind\" threw no expected exception.\n".
+            "Expects \"RuntimeException\" exception.\n".
+            'Caught no exception.'
         );
     }
     /** **********************************************************************
@@ -95,6 +100,21 @@ class StreamCloseTest extends TestCase
      * @return  array                                   Data.
      ************************************************************************/
     public function dataProviderResources(): array
+    {
+        $result = [];
+
+        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
+            $result[] = [$resource];
+        }
+
+        return $result;
+    }
+    /** **********************************************************************
+     * Data provider: seekable resources.
+     *
+     * @return  array                                   Data.
+     ************************************************************************/
+    public function dataProviderResourcesSeekable(): array
     {
         $result = [];
 

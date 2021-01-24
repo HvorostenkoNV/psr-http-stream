@@ -5,46 +5,51 @@ namespace HNV\Http\StreamTests;
 
 use Throwable;
 use PHPUnit\Framework\TestCase;
-use HNV\Http\StreamTests\Generator\Resource\All as ResourceGeneratorAll;
+use HNV\Http\StreamTests\Generator\{
+    Resource\ReadableOnly           as ResourceGeneratorReadableOnly,
+    Resource\WritableOnly           as ResourceGeneratorWritableOnly,
+    Resource\ReadableAndWritable    as ResourceGeneratorReadableAndWritable,
+    Resource\All                    as ResourceGeneratorAll
+};
 use HNV\Http\Stream\Stream;
 /** ***********************************************************************************************
  * PSR-7 StreamInterface implementation test.
  *
- * Testing stream seekable state info providing.
+ * Testing stream readable state info providing.
  *
  * @package HNV\Psr\Http\Tests\Stream
  * @author  Hvorostenko
  *************************************************************************************************/
-class StreamIsSeekableTest extends TestCase
+class StreamIsReadableTest extends TestCase
 {
     /** **********************************************************************
-     * Test "Stream::isSeekable" provides true if the stream is seekable.
+     * Test "Stream::isReadable" provides true if the stream is readable.
      *
-     * @covers          Stream::isSeekable
-     * @dataProvider    dataProviderResourcesWithSeekingStateValues
+     * @covers          Stream::isReadable
+     * @dataProvider    dataProviderResourcesWithReadableState
      *
      * @param           resource    $resource           Recourse.
-     * @param           bool        $stateExpected      Recourse is seekable.
+     * @param           bool        $stateExpected      Recourse is readable.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testIsSeekable($resource, bool $stateExpected): void
+    public function testIsReadable($resource, bool $stateExpected): void
     {
-        $stateCaught = (new Stream($resource))->isSeekable();
+        $stateCaught = (new Stream($resource))->isReadable();
 
         self::assertEquals(
             $stateExpected,
             $stateCaught,
-            "Action \"Stream->isSeekable\" returned unexpected result.\n".
+            "Action \"Stream->isReadable\" returned unexpected result.\n".
             "Expected result is \"$stateExpected\".\n".
             "Caught result is \"$stateCaught\"."
         );
     }
     /** **********************************************************************
-     * Test "Stream::isSeekable" behavior with stream in a closed state.
+     * Test "Stream::isReadable" behavior with stream in a closed state.
      *
-     * @covers          Stream::isSeekable
+     * @covers          Stream::isReadable
      * @dataProvider    dataProviderResources
      *
      * @param           resource $resource              Recourse.
@@ -52,22 +57,22 @@ class StreamIsSeekableTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testIsSeekableInClosedState($resource): void
+    public function testIsReadableInClosedState($resource): void
     {
         $stream = new Stream($resource);
         $stream->close();
 
         self::assertFalse(
-            $stream->isSeekable(),
-            "Action \"Stream->close->isSeekable\" returned unexpected result.\n".
+            $stream->isReadable(),
+            "Action \"Stream->close->isReadable\" returned unexpected result.\n".
             "Expected result is \"false\".\n".
             "Caught result is \"NOT false\"."
         );
     }
     /** **********************************************************************
-     * Test "Stream::isSeekable" behavior with stream in a detached state.
+     * Test "Stream::isReadable" behavior with stream in a detached state.
      *
-     * @covers          Stream::isSeekable
+     * @covers          Stream::isReadable
      * @dataProvider    dataProviderResources
      *
      * @param           resource $resource              Recourse.
@@ -75,14 +80,14 @@ class StreamIsSeekableTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testIsSeekableInDetachedState($resource): void
+    public function testIsReadableInDetachedState($resource): void
     {
         $stream = new Stream($resource);
         $stream->detach();
 
         self::assertFalse(
-            $stream->isSeekable(),
-            "Action \"Stream->detach->isSeekable\" returned unexpected result.\n".
+            $stream->isReadable(),
+            "Action \"Stream->detach->isReadable\" returned unexpected result.\n".
             "Expected result is \"false\".\n".
             "Caught result is \"NOT false\"."
         );
@@ -103,15 +108,21 @@ class StreamIsSeekableTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Data provider: resources with their seekable state.
+     * Data provider: resources with their readable state.
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesWithSeekingStateValues(): array
+    public function dataProviderResourcesWithReadableState(): array
     {
         $result = [];
 
-        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
+        foreach ((new ResourceGeneratorReadableOnly())->generate() as $resource) {
+            $result[] = [$resource, true];
+        }
+        foreach ((new ResourceGeneratorWritableOnly())->generate() as $resource) {
+            $result[] = [$resource, false];
+        }
+        foreach ((new ResourceGeneratorReadableAndWritable())->generate() as $resource) {
             $result[] = [$resource, true];
         }
 

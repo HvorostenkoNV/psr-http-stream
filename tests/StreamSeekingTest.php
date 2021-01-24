@@ -7,19 +7,13 @@ use Throwable;
 use RuntimeException;
 use PHPUnit\Framework\TestCase;
 use HNV\Http\StreamTests\Generator\{
-    Resource    as ResourceGenerator,
-    Text        as TextGenerator
+    Resource\Writable   as ResourceGeneratorWritable,
+    Resource\All        as ResourceGeneratorAll,
+    Text                as TextGenerator
 };
 use HNV\Http\Stream\Stream;
-use HNV\Http\Stream\Collection\{
-    ResourceAccessMode\ReadableOnly         as AccessModeReadableOnly,
-    ResourceAccessMode\WritableOnly         as AccessModeWritableOnly,
-    ResourceAccessMode\ReadableAndWritable  as AccessModeReadableAndWritable,
-    ResourceAccessMode\NonSuitable          as AccessModeNonSuitable
-};
 
 use function strlen;
-use function array_diff;
 use function fseek;
 use function fwrite;
 use function ftell;
@@ -100,7 +94,7 @@ class StreamSeekingTest extends TestCase
      * Test "Stream::seek" behavior with stream in a closed state.
      *
      * @covers          Stream::seek
-     * @dataProvider    dataProviderResourcesSeekable
+     * @dataProvider    dataProviderResources
      *
      * @param           resource $resource              Recourse.
      *
@@ -125,7 +119,7 @@ class StreamSeekingTest extends TestCase
      * Test "Stream::seek" behavior with stream in a detached state.
      *
      * @covers          Stream::seek
-     * @dataProvider    dataProviderResourcesSeekable
+     * @dataProvider    dataProviderResources
      *
      * @param           resource $resource              Recourse.
      *
@@ -147,18 +141,16 @@ class StreamSeekingTest extends TestCase
         );
     }
     /** **********************************************************************
-     * Data provider: seekable resources.
+     * Data provider: resources, readable and writable.
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesSeekable(): array
+    public function dataProviderResources(): array
     {
         $result = [];
 
-        foreach ($this->getResourcesWithStates() as $parameters) {
-            if ($parameters['isSeekable']) {
-                $result[] = [$parameters['resource']];
-            }
+        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
+            $result[] = [$resource];
         }
 
         return $result;
@@ -172,15 +164,91 @@ class StreamSeekingTest extends TestCase
     {
         $result = [];
 
-        foreach ($this->getResourcesWithSeekingParameters() as $parameters) {
-            if ($parameters['seekingIsValid']) {
-                $result[] = [
-                    $parameters['resource'],
-                    $parameters['seekingOffset'],
-                    $parameters['seekingWhence'],
-                    $parameters['seekingExpectedPosition'],
-                ];
-            }
+        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
+            $result[] = [
+                $resource,
+                0,
+                SEEK_SET,
+                0
+            ];
+        }
+        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
+            $result[] = [
+                $resource,
+                1,
+                SEEK_SET,
+                1
+            ];
+        }
+        foreach ((new ResourceGeneratorWritable())->generate() as $resource) {
+            $content    = (new TextGenerator())->generate();
+            $seekValue  = (int) (strlen($content) / 2);
+            fwrite($resource, $content);
+            $result[]   = [
+                $resource,
+                $seekValue,
+                SEEK_SET,
+                $seekValue
+            ];
+        }
+        foreach ((new ResourceGeneratorWritable())->generate() as $resource) {
+            $content    = (new TextGenerator())->generate();
+            fwrite($resource, $content);
+            $result[]   = [
+                $resource,
+                strlen($content) + 1,
+                SEEK_SET,
+                strlen($content) + 1
+            ];
+        }
+
+        foreach ((new ResourceGeneratorWritable())->generate() as $resource) {
+            $content            = (new TextGenerator())->generate();
+            $seekValueFirst     = (int) (strlen($content) / 2);
+            $seekValueSecond    = (int) (strlen($content) / 4);
+            $seekValueTotal     = $seekValueFirst + $seekValueSecond;
+            fwrite($resource, $content);
+            fseek($resource, $seekValueFirst);
+            $result[]           = [
+                $resource,
+                $seekValueSecond,
+                SEEK_CUR,
+                $seekValueTotal
+            ];
+        }
+        foreach ((new ResourceGeneratorWritable())->generate() as $resource) {
+            $content    = (new TextGenerator())->generate();
+            fwrite($resource, $content);
+            fseek($resource, strlen($content));
+            $result[]   = [
+                $resource,
+                1,
+                SEEK_CUR,
+                strlen($content) + 1
+            ];
+        }
+
+        foreach ((new ResourceGeneratorWritable())->generate() as $resource) {
+            $content            = (new TextGenerator())->generate();
+            $seekValue          = -1;
+            $seekValueTotal     = strlen($content) + $seekValue;
+            fwrite($resource, $content);
+            $result[]           = [
+                $resource,
+                $seekValue,
+                SEEK_END,
+                $seekValueTotal,
+            ];
+        }
+        foreach ((new ResourceGeneratorWritable())->generate() as $resource) {
+            $content    = (new TextGenerator())->generate();
+            fwrite($resource, $content);
+            $result[]   = [
+                $resource,
+                1,
+                SEEK_END,
+                strlen($content) + 1,
+            ];
         }
 
         return $result;
@@ -194,224 +262,26 @@ class StreamSeekingTest extends TestCase
     {
         $result = [];
 
-        foreach ($this->getResourcesWithSeekingParameters() as $parameters) {
-            if (!$parameters['seekingIsValid']) {
-                $result[] = [
-                    $parameters['resource'],
-                    $parameters['seekingOffset'],
-                    $parameters['seekingWhence'],
-                ];
-            }
-        }
-
-        return $result;
-    }
-    /** **********************************************************************
-     * Data provider helper: resources with states parameters.
-     *
-     * @example
-     *         [
-     *          resource    => resources,
-     *          isSeekable  => resources is seekable (boolean),
-     *          isWritable  => resources is writable (boolean),
-     *         ]
-     * @return  array[]                                 Data set.
-     ************************************************************************/
-    private function getResourcesWithStates(): array
-    {
-        $modesReadableOnly          = AccessModeReadableOnly::get();
-        $modesWritableOnly          = AccessModeWritableOnly::get();
-        $modesReadableAndWritable   = AccessModeReadableAndWritable::get();
-        $modesNonSuitable           = AccessModeNonSuitable::get();
-        $result                     = [];
-
-        foreach (array_diff($modesReadableOnly, $modesNonSuitable) as $mode) {
-            $resource   = (new ResourceGenerator($mode))->generate();
-            $result[]   = [
-                'resource'      => $resource,
-                'isSeekable'    => true,
-                'isWritable'    => false,
-            ];
-        }
-        foreach (array_diff($modesWritableOnly, $modesNonSuitable) as $mode) {
-            $resource   = (new ResourceGenerator($mode))->generate();
-            $result[]   = [
-                'resource'      => $resource,
-                'isSeekable'    => true,
-                'isWritable'    => true,
-            ];
-        }
-        foreach (array_diff($modesReadableAndWritable, $modesNonSuitable) as $mode) {
-            $resource   = (new ResourceGenerator($mode))->generate();
-            $result[]   = [
-                'resource'      => $resource,
-                'isSeekable'    => true,
-                'isWritable'    => true,
-            ];
-        }
-
-        return $result;
-    }
-    /** **********************************************************************
-     * Data provider helper: resources with seeking params.
-     *
-     * @example
-     *         [
-     *          resource    => resources,
-     *          offset      => seeking offset parameter (integer),
-     *          whence      => seeking whence parameter (integer),
-     *          position    => expected cursor position (integer),
-     *          isValid     => parameters valid marker (boolean),
-     *         ]
-     * @return  array[]                                 Data set.
-     ************************************************************************/
-    private function getResourcesWithSeekingParameters(): array
-    {
-        $result = [];
-
-        foreach ($this->getResourcesWithStates() as $parameters) {
+        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
             $result[] = [
-                'resource'                  => $parameters['resource'],
-                'seekingOffset'             => 0,
-                'seekingWhence'             => SEEK_SET,
-                'seekingExpectedPosition'   => 0,
-                'seekingIsValid'            => $parameters['isSeekable'],
+                $resource,
+                -1,
+                SEEK_SET,
             ];
         }
-        foreach ($this->getResourcesWithStates() as $parameters) {
+        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
             $result[] = [
-                'resource'                  => $parameters['resource'],
-                'seekingOffset'             => 1,
-                'seekingWhence'             => SEEK_SET,
-                'seekingExpectedPosition'   => 1,
-                'seekingIsValid'            => $parameters['isSeekable'],
+                $resource,
+                0,
+                SEEK_SET - 1,
             ];
         }
-        foreach ($this->getResourcesWithStates() as $parameters) {
+
+        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
             $result[] = [
-                'resource'                  => $parameters['resource'],
-                'seekingOffset'             => -1,
-                'seekingWhence'             => SEEK_SET,
-                'seekingExpectedPosition'   => 0,
-                'seekingIsValid'            => false,
-            ];
-        }
-        foreach ($this->getResourcesWithStates() as $parameters) {
-            if ($parameters['isSeekable'] && $parameters['isWritable']) {
-                $content    = (new TextGenerator())->generate();
-                $seekValue  = (int) (strlen($content) / 2);
-
-                fwrite($parameters['resource'], $content);
-
-                $result[]   = [
-                    'resource'                  => $parameters['resource'],
-                    'seekingOffset'             => $seekValue,
-                    'seekingWhence'             => SEEK_SET,
-                    'seekingExpectedPosition'   => $seekValue,
-                    'seekingIsValid'            => true,
-                ];
-            }
-        }
-        foreach ($this->getResourcesWithStates() as $parameters) {
-            if ($parameters['isSeekable'] && $parameters['isWritable']) {
-                $content    = (new TextGenerator())->generate();
-
-                fwrite($parameters['resource'], $content);
-
-                $result[]   = [
-                    'resource'                  => $parameters['resource'],
-                    'seekingOffset'             => strlen($content) + 1,
-                    'seekingWhence'             => SEEK_SET,
-                    'seekingExpectedPosition'   => strlen($content) + 1,
-                    'seekingIsValid'            => true,
-                ];
-            }
-        }
-
-        foreach ($this->getResourcesWithStates() as $parameters) {
-            if ($parameters['isSeekable'] && $parameters['isWritable']) {
-                $content            = (new TextGenerator())->generate();
-                $seekValueFirst     = (int) (strlen($content) / 2);
-                $seekValueSecond    = (int) (strlen($content) / 4);
-                $seekValueTotal     = $seekValueFirst + $seekValueSecond;
-
-                fwrite($parameters['resource'], $content);
-                fseek($parameters['resource'], $seekValueFirst);
-
-                $result[]           = [
-                    'resource'                  => $parameters['resource'],
-                    'seekingOffset'             => $seekValueSecond,
-                    'seekingWhence'             => SEEK_CUR,
-                    'seekingExpectedPosition'   => $seekValueTotal,
-                    'seekingIsValid'            => true,
-                ];
-            }
-        }
-        foreach ($this->getResourcesWithStates() as $parameters) {
-            if ($parameters['isSeekable'] && $parameters['isWritable']) {
-                $content    = (new TextGenerator())->generate();
-
-                fwrite($parameters['resource'], $content);
-                fseek($parameters['resource'], strlen($content));
-
-                $result[]   = [
-                    'resource'                  => $parameters['resource'],
-                    'seekingOffset'             => 1,
-                    'seekingWhence'             => SEEK_CUR,
-                    'seekingExpectedPosition'   => strlen($content) + 1,
-                    'seekingIsValid'            => true,
-                ];
-            }
-        }
-
-        foreach ($this->getResourcesWithStates() as $parameters) {
-            if ($parameters['isSeekable'] && $parameters['isWritable']) {
-                $content            = (new TextGenerator())->generate();
-                $seekValue          = -1;
-                $seekValueTotal     = strlen($content) + $seekValue;
-
-                fwrite($parameters['resource'], $content);
-
-                $result[]           = [
-                    'resource'                  => $parameters['resource'],
-                    'seekingOffset'             => $seekValue,
-                    'seekingWhence'             => SEEK_END,
-                    'seekingExpectedPosition'   => $seekValueTotal,
-                    'seekingIsValid'            => true,
-                ];
-            }
-        }
-        foreach ($this->getResourcesWithStates() as $parameters) {
-            if ($parameters['isSeekable'] && $parameters['isWritable']) {
-                $content    = (new TextGenerator())->generate();
-
-                fwrite($parameters['resource'], $content);
-
-                $result[]   = [
-                    'resource'                  => $parameters['resource'],
-                    'seekingOffset'             => 1,
-                    'seekingWhence'             => SEEK_END,
-                    'seekingExpectedPosition'   => strlen($content) + 1,
-                    'seekingIsValid'            => true,
-                ];
-            }
-        }
-        foreach ($this->getResourcesWithStates() as $parameters) {
-            $result[] = [
-                'resource'                  => $parameters['resource'],
-                'seekingOffset'             => 0,
-                'seekingWhence'             => SEEK_END + 1,
-                'seekingExpectedPosition'   => 0,
-                'seekingIsValid'            => false,
-            ];
-        }
-        foreach ($this->getResourcesWithStates() as $parameters) {
-            $result[] = [
-                'resource'                  => $parameters['resource'],
-                'seekingOffset'             => 0,
-                'seekingWhence'             => SEEK_SET - 1,
-                'seekingExpectedPosition'   => 0,
-                'seekingIsValid'            => false,
+                $resource,
+                0,
+                SEEK_END + 1,
             ];
         }
 

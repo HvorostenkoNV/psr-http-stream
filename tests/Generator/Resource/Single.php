@@ -1,35 +1,32 @@
 <?php
 declare(strict_types=1);
 
-namespace HNV\Http\StreamTests\Generator;
+namespace HNV\Http\StreamTests\Generator\Resource;
 
 use LogicException;
-use HNV\Http\Stream\Collection\{
-    ResourceAccessMode\ReadableAndWritable as AccessModeReadableAndWritable
+use HNV\Http\StreamTests\Generator\{
+    GeneratorInterface,
+    File as FileGenerator
 };
 
-use function array_shift;
 use function is_resource;
 use function fopen;
 use function fclose;
 use function register_shutdown_function;
 /** ***********************************************************************************************
- * Temporary resource generator.
+ * Single resource generator.
  *
  * @package HNV\Psr\Http\Tests\Stream
  * @author  Hvorostenko
  *************************************************************************************************/
-class ResourceTemporary implements GeneratorInterface
+class Single implements GeneratorInterface
 {
-    private string $mode;
     /** **********************************************************************
      * Constructor.
+     *
+     * @param string $mode                  Resource access mode.
      ************************************************************************/
-    public function __construct()
-    {
-        $mode       = AccessModeReadableAndWritable::get();
-        $this->mode = array_shift($mode);
-    }
+    public function __construct(public string $mode) {}
     /** **********************************************************************
      * @inheritDoc
      *
@@ -37,7 +34,7 @@ class ResourceTemporary implements GeneratorInterface
      ************************************************************************/
     public function generate(): mixed
     {
-        $file       = (new File())->generate();
+        $file       = (new FileGenerator())->generate();
         $resource   = fopen($file, $this->mode);
 
         if ($resource === false) {

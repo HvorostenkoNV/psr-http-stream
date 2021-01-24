@@ -5,14 +5,8 @@ namespace HNV\Http\StreamTests;
 
 use Throwable;
 use PHPUnit\Framework\TestCase;
-use HNV\Http\StreamTests\Generator\Resource as ResourceGenerator;
+use HNV\Http\StreamTests\Generator\Resource\All as ResourceGeneratorAll;
 use HNV\Http\Stream\Stream;
-use HNV\Http\Stream\Collection\{
-    ResourceAccessMode\ReadableAndWritable  as AccessModeReadableAndWritable,
-    ResourceAccessMode\NonSuitable          as AccessModeNonSuitable
-};
-
-use function array_diff;
 /** ***********************************************************************************************
  * PSR-7 StreamInterface implementation test.
  *
@@ -99,13 +93,10 @@ class StreamDetachTest extends TestCase
      ************************************************************************/
     public function dataProviderResources(): array
     {
-        $modesReadableAndWritable   = AccessModeReadableAndWritable::get();
-        $modesNonSuitable           = AccessModeNonSuitable::get();
-        $result                     = [];
+        $result = [];
 
-        foreach (array_diff($modesReadableAndWritable, $modesNonSuitable) as $mode) {
-            $resource   = (new ResourceGenerator($mode))->generate();
-            $result[]   = [$resource];
+        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
+            $result[] = [$resource];
         }
 
         return $result;

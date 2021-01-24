@@ -86,6 +86,10 @@ class Stream extends AbstractStream implements StreamInterface
      ************************************************************************/
     public function tell(): int
     {
+        if (!$this->isReadable()) {
+            throw new RuntimeException('stream is not readable');
+        }
+
         $cursorPosition = is_resource($this->resource)
             ? ftell($this->resource)
             : false;

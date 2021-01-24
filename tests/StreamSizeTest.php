@@ -6,19 +6,15 @@ namespace HNV\Http\StreamTests;
 use Throwable;
 use PHPUnit\Framework\TestCase;
 use HNV\Http\StreamTests\Generator\{
-    Resource    as ResourceGenerator,
-    Text        as TextGenerator
+    Resource\ReadableOnly           as ResourceGeneratorReadableOnly,
+    Resource\Writable               as ResourceGeneratorWritable,
+    Resource\WritableOnly           as ResourceGeneratorWritableOnly,
+    Resource\ReadableAndWritable    as ResourceGeneratorReadableAndWritable,
+    Text                            as TextGenerator
 };
 use HNV\Http\Stream\Stream;
-use HNV\Http\Stream\Collection\{
-    ResourceAccessMode\ReadableOnly         as AccessModeReadableOnly,
-    ResourceAccessMode\WritableOnly         as AccessModeWritableOnly,
-    ResourceAccessMode\ReadableAndWritable  as AccessModeReadableAndWritable,
-    ResourceAccessMode\NonSuitable          as AccessModeNonSuitable
-};
 
 use function strlen;
-use function array_diff;
 use function fwrite;
 /** ***********************************************************************************************
  * PSR-7 StreamInterface implementation test.
@@ -113,24 +109,17 @@ class StreamSizeTest extends TestCase
      ************************************************************************/
     public function dataProviderResourcesWithSizeValue(): array
     {
-        $modesReadableOnly          = AccessModeReadableOnly::get();
-        $modesWritableOnly          = AccessModeWritableOnly::get();
-        $modesReadableAndWritable   = AccessModeReadableAndWritable::get();
-        $modesNonSuitable           = AccessModeNonSuitable::get();
-        $result                     = [];
+        $result = [];
 
-        foreach (array_diff($modesReadableOnly, $modesNonSuitable) as $mode) {
-            $resource   = (new ResourceGenerator($mode))->generate();
-            $result[]   = [$resource, 0];
+        foreach ((new ResourceGeneratorReadableOnly())->generate() as $resource) {
+            $result[] = [$resource, 0];
         }
-        foreach (array_diff($modesWritableOnly, $modesNonSuitable) as $mode) {
-            $resource   = (new ResourceGenerator($mode))->generate();
+        foreach ((new ResourceGeneratorWritableOnly())->generate() as $resource) {
             $content    = (new TextGenerator())->generate();
             fwrite($resource, $content);
             $result[]   = [$resource, strlen($content)];
         }
-        foreach (array_diff($modesReadableAndWritable, $modesNonSuitable) as $mode) {
-            $resource   = (new ResourceGenerator($mode))->generate();
+        foreach ((new ResourceGeneratorReadableAndWritable())->generate() as $resource) {
             $content    = (new TextGenerator())->generate();
             fwrite($resource, $content);
             $result[]   = [$resource, strlen($content)];
@@ -145,12 +134,9 @@ class StreamSizeTest extends TestCase
      ************************************************************************/
     public function dataProviderResourcesWithDataToWrite(): array
     {
-        $modesReadableAndWritable   = AccessModeReadableAndWritable::get();
-        $modesNonSuitable           = AccessModeNonSuitable::get();
-        $result                     = [];
+        $result = [];
 
-        foreach (array_diff($modesReadableAndWritable, $modesNonSuitable) as $mode) {
-            $resource   = (new ResourceGenerator($mode))->generate();
+        foreach ((new ResourceGeneratorWritable())->generate() as $resource) {
             $content    = (new TextGenerator())->generate();
             $result[]   = [$resource, $content];
         }

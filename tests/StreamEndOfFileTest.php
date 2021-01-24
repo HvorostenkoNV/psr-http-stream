@@ -6,16 +6,14 @@ namespace HNV\Http\StreamTests;
 use Throwable;
 use PHPUnit\Framework\TestCase;
 use HNV\Http\StreamTests\Generator\{
-    Resource    as ResourceGenerator,
-    Text        as TextGenerator
+    Resource\Writable               as ResourceGeneratorWritable,
+    Resource\WritableOnly           as ResourceGeneratorWritableOnly,
+    Resource\ReadableAndWritable    as ResourceGeneratorReadableAndWritable,
+    Resource\All                    as ResourceGeneratorAll,
+    Text                            as TextGenerator
 };
 use HNV\Http\Stream\Stream;
-use HNV\Http\Stream\Collection\{
-    ResourceAccessMode\ReadableAndWritable  as AccessModeReadableAndWritable,
-    ResourceAccessMode\NonSuitable          as AccessModeNonSuitable
-};
 
-use function array_diff;
 use function fwrite;
 use function feof;
 use function fgetc;
@@ -110,13 +108,10 @@ class StreamEndOfFileTest extends TestCase
      ************************************************************************/
     public function dataProviderResources(): array
     {
-        $modesReadableAndWritable   = AccessModeReadableAndWritable::get();
-        $modesNonSuitable           = AccessModeNonSuitable::get();
-        $result                     = [];
+        $result = [];
 
-        foreach (array_diff($modesReadableAndWritable, $modesNonSuitable) as $mode) {
-            $resource   = (new ResourceGenerator($mode))->generate();
-            $result[]   = [$resource];
+        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
+            $result[] = [$resource];
         }
 
         return $result;
@@ -130,26 +125,43 @@ class StreamEndOfFileTest extends TestCase
     {
         $result = [];
 
-        foreach ($this->dataProviderResources() as $set) {
-            $resource   = $set[0];
-            $result[]   = [$resource, false];
+        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
+            $result[] = [$resource, false];
         }
-        foreach ($this->dataProviderResources() as $set) {
-            $resource   = $set[0];
+        foreach ( (new ResourceGeneratorWritable())->generate() as $resource) {
             $content    = (new TextGenerator())->generate();
             fwrite($resource, $content);
             $result[]   = [$resource, false];
         }
-        foreach ($this->dataProviderResources() as $set) {
-            $resource   = $set[0];
+        foreach ((new ResourceGeneratorWritableOnly())->generate() as $resource) {
             $content    = (new TextGenerator())->generate();
             fwrite($resource, $content);
-            while (!feof($resource)) {
-                fgetc($resource);
-            }
+            $this->reachResourceEnd($resource);
+            $result[]   = [$resource, false];
+        }
+        foreach ((new ResourceGeneratorReadableAndWritable())->generate() as $resource) {
+            $content    = (new TextGenerator())->generate();
+            fwrite($resource, $content);
+            $this->reachResourceEnd($resource);
             $result[]   = [$resource, true];
         }
 
         return $result;
+    }
+    /** **********************************************************************
+     * Rewind resource to the end.
+     *
+     * @param   resource $resource                      Resource.
+     *
+     * @return  void
+     ************************************************************************/
+    private function reachResourceEnd($resource): void
+    {
+        while (!feof($resource)) {
+            $result = fgetc($resource);
+            if($result === false) {
+                break;
+            }
+        }
     }
 }

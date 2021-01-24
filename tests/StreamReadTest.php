@@ -8,6 +8,7 @@ use RuntimeException;
 use PHPUnit\Framework\TestCase;
 use HNV\Http\StreamTests\Generator\{
     Resource\Readable               as ResourceGeneratorReadable,
+    Resource\ReadableOnly           as ResourceGeneratorReadableOnly,
     Resource\WritableOnly           as ResourceGeneratorWritableOnly,
     Resource\ReadableAndWritable    as ResourceGeneratorReadableAndWritable,
     Resource\All                    as ResourceGeneratorAll,
@@ -16,69 +17,75 @@ use HNV\Http\StreamTests\Generator\{
 use HNV\Http\Stream\Stream;
 
 use function strlen;
+use function substr;
 use function fwrite;
-use function fseek;
+use function feof;
+use function fgetc;
+use function rewind;
 /** ***********************************************************************************************
  * PSR-7 StreamInterface implementation test.
  *
- * Testing stream current position pointer providing.
+ * Testing stream reading behavior.
  *
  * @package HNV\Psr\Http\Tests\Stream
  * @author  Hvorostenko
  *************************************************************************************************/
-class StreamCursorPointerPositionTest extends TestCase
+class StreamReadTest extends TestCase
 {
     /** **********************************************************************
-     * Test "Stream::tell" provides recourse current position pointer.
+     * Test "Stream::read" provides data from the stream.
      *
-     * @covers          Stream::tell
-     * @dataProvider    dataProviderResourcesInValidState
+     * @covers          Stream::read
+     * @dataProvider    dataProviderResourcesWithReadParametersValid
      *
-     * @param           resource    $resource           Recourse.
-     * @param           int         $positionExpected   Pointer expected position.
+     * @param           resource    $resource           Resource.
+     * @param           int         $length             Read data length.
+     * @param           string      $contentExpected    Expected read data.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testTell($resource, int $positionExpected): void
+    public function testRead($resource, int $length, string $contentExpected): void
     {
-        $positionCaught = (new Stream($resource))->tell();
+        $contentCaught = (new Stream($resource))->read($length);
 
         self::assertEquals(
-            $positionExpected,
-            $positionCaught,
-            "Action \"Stream->tell\" returned unexpected result.\n".
-            "Expected result is \"$positionExpected\".\n".
-            "Caught result is \"$positionCaught\"."
+            $contentExpected,
+            $contentCaught,
+            "Action \"Stream->read\" returned unexpected result.\n".
+            "Action was called with parameters (length => $length).\n".
+            "Expected result is \"$contentExpected\".\n".
+            "Caught result is \"$contentCaught\"."
         );
     }
     /** **********************************************************************
-     * Test "Stream::tell" throws exception with stream reading error.
+     * Test "Stream::read" throws exception with data reading error.
      *
-     * @covers          Stream::tell
-     * @dataProvider    dataProviderResourcesInInvalidState
+     * @covers          Stream::read
+     * @dataProvider    dataProviderResourcesWithReadParametersInvalid
      *
-     * @param           resource $resource              Recourse.
+     * @param           resource    $resource           Resource.
+     * @param           int         $length             Read data length.
      *
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testTellThrowsException($resource): void
+    public function testReadThrowsException($resource, int $length): void
     {
         $this->expectException(RuntimeException::class);
 
-        (new Stream($resource))->tell();
+        (new Stream($resource))->read($length);
 
         self::fail(
-            "Action \"Stream->tell\" threw no expected exception.\n".
+            "Action \"Stream->read\" threw no expected exception.\n".
             "Expects \"RuntimeException\" exception.\n".
             'Caught no exception.'
         );
     }
     /** **********************************************************************
-     * Test "Stream::tell" behavior with stream in a closed state.
+     * Test "Stream::read" behavior with stream in a closed state.
      *
-     * @covers          Stream::tell
+     * @covers          Stream::read
      * @dataProvider    dataProviderResources
      *
      * @param           resource $resource              Recourse.
@@ -86,25 +93,24 @@ class StreamCursorPointerPositionTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testTellInClosedState($resource): void
+    public function testReadInClosedState($resource): void
     {
         $this->expectException(RuntimeException::class);
 
         $stream = new Stream($resource);
-
         $stream->close();
-        $stream->tell();
+        $stream->read(0);
 
         self::fail(
-            "Action \"Stream->close->tell\" threw no expected exception.\n".
+            "Action \"Stream->close->read\" threw no expected exception.\n".
             "Expects \"RuntimeException\" exception.\n".
             'Caught no exception.'
         );
     }
     /** **********************************************************************
-     * Test "Stream::tell" behavior with stream in a detached state.
+     * Test "Stream::read" behavior with stream in a detached state.
      *
-     * @covers          Stream::tell
+     * @covers          Stream::read
      * @dataProvider    dataProviderResources
      *
      * @param           resource $resource              Recourse.
@@ -112,17 +118,16 @@ class StreamCursorPointerPositionTest extends TestCase
      * @return          void
      * @throws          Throwable
      ************************************************************************/
-    public function testTellInDetachedState($resource): void
+    public function testReadInDetachedState($resource): void
     {
         $this->expectException(RuntimeException::class);
 
         $stream = new Stream($resource);
-
         $stream->detach();
-        $stream->tell();
+        $stream->read(0);
 
         self::fail(
-            "Action \"Stream->detach->tell\" threw no expected exception.\n".
+            "Action \"Stream->detach->read\" threw no expected exception.\n".
             "Expects \"RuntimeException\" exception.\n".
             'Caught no exception.'
         );
@@ -143,45 +148,72 @@ class StreamCursorPointerPositionTest extends TestCase
         return $result;
     }
     /** **********************************************************************
-     * Data provider: resources with cursor pointer in valid positions.
+     * Data provider: resources with data to read valid value.
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesInValidState(): array
+    public function dataProviderResourcesWithReadParametersValid(): array
     {
         $result = [];
 
-        foreach ( (new ResourceGeneratorReadable())->generate() as $resource) {
-            $result[]   = [$resource, 0];
+        foreach ((new ResourceGeneratorReadable())->generate() as $resource) {
+            $result[] = [$resource, 0, ''];
         }
         foreach ((new ResourceGeneratorReadableAndWritable())->generate() as $resource) {
             $content    = (new TextGenerator())->generate();
             fwrite($resource, $content);
-            $result[]   = [$resource, strlen($content)];
+            rewind($resource);
+            $result[]   = [$resource, strlen($content), $content];
+        }
+        foreach ((new ResourceGeneratorReadableAndWritable())->generate() as $resource) {
+            $content            = (new TextGenerator())->generate();
+            $readLength         = (int) (strlen($content) / 2);
+            $expectedContent    = substr($content, 0, $readLength);
+            fwrite($resource, $content);
+            rewind($resource);
+            $result[]           = [$resource, $readLength, $expectedContent];
         }
         foreach ((new ResourceGeneratorReadableAndWritable())->generate() as $resource) {
             $content    = (new TextGenerator())->generate();
-            $seekValue  = (int) (strlen($content) / 2);
             fwrite($resource, $content);
-            fseek($resource, $seekValue);
-            $result[]   = [$resource, $seekValue];
+            $this->reachResourceEnd($resource);
+            $result[]   = [$resource, strlen($content), ''];
         }
 
         return $result;
     }
     /** **********************************************************************
-     * Data provider: resources with cursor pointer in invalid values.
+     * Data provider: resources with data to read invalid value.
      *
      * @return  array                                   Data.
      ************************************************************************/
-    public function dataProviderResourcesInInvalidState(): array
+    public function dataProviderResourcesWithReadParametersInvalid(): array
     {
         $result = [];
 
         foreach ((new ResourceGeneratorWritableOnly())->generate() as $resource) {
-            $result[] = [$resource, 0];
+            $result[] = [$resource, 1];
+        }
+        foreach ((new ResourceGeneratorReadableOnly())->generate() as $resource) {
+            $result[] = [$resource, -1];
         }
 
         return $result;
+    }
+    /** **********************************************************************
+     * Rewind resource to the end.
+     *
+     * @param   resource $resource                      Resource.
+     *
+     * @return  void
+     ************************************************************************/
+    private function reachResourceEnd($resource): void
+    {
+        while (!feof($resource)) {
+            $result = fgetc($resource);
+            if($result === false) {
+                break;
+            }
+        }
     }
 }
