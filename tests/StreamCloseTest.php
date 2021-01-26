@@ -62,7 +62,7 @@ class StreamCloseTest extends TestCase
         self::assertTrue(
             is_resource($resourceDetached),
             "Action \"Stream->detach->close\" showed unexpected behavior.\n".
-            "Expects underlying resource will be NOT closed\n".
+            "Expects underlying resource will be NOT closed.\n".
             'Expects underlying resource is closed'
         );
     }
@@ -85,7 +85,7 @@ class StreamCloseTest extends TestCase
         self::assertFalse(
             is_resource($resource),
             "Action \"Stream->__destruct\" showed unexpected behavior.\n".
-            "Expects underlying resource will be closed\n".
+            "Expects underlying resource will be closed.\n".
             'Expects underlying resource is not closed'
         );
     }
