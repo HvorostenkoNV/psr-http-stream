@@ -4,20 +4,10 @@ requirements:
  - PHPStorm
 
 actions plan:
- - drag all project dependencies (PHPUnit includes)
- - get remote PHP server (no WEB server needs)
+ - get remote PHP server
+ - drag all project dependencies
  - configure our IDE (PHPStorm) to use remote PHP server and run tests
- - run tests and be sure all tests path
-
-project composer installation with docker:
- - go into project root
- - use docker composer container, running:
-   $ docker run \
-     --rm \
-     --interactive \
-     --tty \
-     --volume $PWD:/app \
-     composer install
+ - run tests and be sure all tests are pathing
 
 getting remote PHP server:
  - go into project root
@@ -26,6 +16,14 @@ getting remote PHP server:
    $ docker-compose up -d
  - check them, running:
    $ docker container ls
+
+project composer installation with docker:
+ - view current docker containers list
+   $ docker container ls
+ - connect to current compose PHP container
+   $ docker exec -it ${CONTAINER_ID} sh
+ - use composer
+   $ composer install/update
 
 PHPStorm configure (register remote PHP server SSH connection):
  - go to File | Settings | Tools | SSH Configurations -> add new
