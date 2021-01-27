@@ -7,7 +7,7 @@ use Throwable;
 use InvalidArgumentException;
 use RuntimeException;
 use PHPUnit\Framework\TestCase;
-use HNV\Http\StreamTests\Generator\{
+use HNV\Http\Helper\Generator\{
     File    as FileGenerator,
     Text    as TextGenerator
 };

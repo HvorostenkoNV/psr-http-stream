@@ -5,7 +5,7 @@ namespace HNV\Http\StreamTests\Factory;
 
 use Throwable;
 use PHPUnit\Framework\TestCase;
-use HNV\Http\StreamTests\Generator\Text as TextGenerator;
+use HNV\Http\Helper\Generator\Text as TextGenerator;
 use HNV\Http\Stream\StreamFactory;
 /** ***********************************************************************************************
  * PSR-7 StreamFactoryInterface implementation test.

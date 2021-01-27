@@ -6,12 +6,12 @@ namespace HNV\Http\StreamTests;
 use Throwable;
 use RuntimeException;
 use PHPUnit\Framework\TestCase;
+use HNV\Http\Helper\Generator\Text as TextGenerator;
 use HNV\Http\StreamTests\Generator\{
     Resource\ReadableOnly           as ResourceGeneratorReadableOnly,
     Resource\Writable               as ResourceGeneratorWritable,
     Resource\ReadableAndWritable    as ResourceGeneratorReadableAndWritable,
-    Resource\All                    as ResourceGeneratorAll,
-    Text                            as TextGenerator
+    Resource\All                    as ResourceGeneratorAll
 };
 use HNV\Http\Stream\Stream;
 

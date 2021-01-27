@@ -3,11 +3,14 @@ declare(strict_types=1);
 
 namespace HNV\Http\StreamTests\Generator\Resource;
 
+use HNV\Http\Helper\Generator\{
+    GeneratorInterface,
+    Resource as ResourceGenerator
+};
 use HNV\Http\Stream\Collection\ResourceAccessMode\{
     WritableOnly    as AccessModeWritableOnly,
     NonSuitable     as AccessModeNonSuitable
 };
-use HNV\Http\StreamTests\Generator\GeneratorInterface;
 
 use function array_diff;
 /** ***********************************************************************************************
@@ -32,7 +35,7 @@ class WritableOnly implements GeneratorInterface
         $result         = [];
 
         foreach ($accessModes as $mode) {
-            $result[] = (new Single($mode))->generate();
+            $result[] = (new ResourceGenerator($mode))->generate();
         }
 
         return $result;
