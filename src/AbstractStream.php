@@ -5,10 +5,8 @@ namespace HNV\Http\Stream;
 
 use RuntimeException;
 use Psr\Http\Message\StreamInterface;
-use HNV\Http\Stream\Normalizer\{
-    NormalizingException,
-    ResourceAccessMode as ResourceAccessModeNormalizer
-};
+use HNV\Http\Helper\Normalizer\NormalizingException;
+use HNV\Http\Stream\Normalizer\ResourceAccessMode as ResourceAccessModeNormalizer;
 use HNV\Http\Stream\Collection\ResourceAccessMode\{
     Readable    as ResourceAccessModeReadable,
     Writable    as ResourceAccessModeWritable

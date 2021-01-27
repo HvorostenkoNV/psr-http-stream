@@ -3,6 +3,10 @@ declare(strict_types=1);
 
 namespace HNV\Http\Stream\Normalizer;
 
+use HNV\Http\Helper\Normalizer\{
+    NormalizerInterface,
+    NormalizingException
+};
 use HNV\Http\Stream\Collection\ResourceAccessMode\All as ResourceAccessModeAll;
 
 use function str_replace;

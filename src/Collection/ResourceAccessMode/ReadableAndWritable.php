@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace HNV\Http\Stream\Collection\ResourceAccessMode;
 
-use HNV\Http\Stream\Collection\CollectionInterface;
+use HNV\Http\Helper\Collection\CollectionInterface;
 
 use function array_values;
 use function array_intersect;

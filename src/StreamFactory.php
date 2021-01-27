@@ -9,10 +9,8 @@ use Psr\Http\{
     Message\StreamInterface,
     Message\StreamFactoryInterface
 };
-use HNV\Http\Stream\Normalizer\{
-    NormalizingException,
-    ResourceAccessMode as ResourceAccessModeNormalizer
-};
+use HNV\Http\Helper\Normalizer\NormalizingException;
+use HNV\Http\Stream\Normalizer\ResourceAccessMode as ResourceAccessModeNormalizer;
 use HNV\Http\Stream\Collection\ResourceAccessMode\{
     ReadableAndWritable as ResourceAccessModeReadableAndWritable
 };
