@@ -3,41 +3,21 @@ declare(strict_types=1);
 
 namespace HNV\Http\StreamTests\Generator\Resource;
 
-use HNV\Http\Helper\Generator\{
-    GeneratorInterface,
-    Resource as ResourceGenerator
-};
-use HNV\Http\Stream\Collection\ResourceAccessMode\{
-    All         as AccessModeAll,
-    NonSuitable as AccessModeNonSuitable
-};
-
-use function array_diff;
+use HNV\Http\Helper\Generator\GeneratorInterface;
+use HNV\Http\Stream\Collection\ResourceAccessMode\All as AccessModeAll;
 /** ***********************************************************************************************
  * Resources (all mode types) set generator.
  *
  * @package HNV\Psr\Http\Tests\Stream
  * @author  Hvorostenko
  *************************************************************************************************/
-class All implements GeneratorInterface
+class All extends AbstractResource implements GeneratorInterface
 {
     /** **********************************************************************
      * @inheritDoc
-     *
-     * @return resource[]                   Generated resources set.
      ************************************************************************/
-    public function generate(): array
+    protected function buildAccessModes(): array
     {
-        $accessModes    = array_diff(
-            AccessModeAll::get(),
-            AccessModeNonSuitable::get()
-        );
-        $result         = [];
-
-        foreach ($accessModes as $mode) {
-            $result[] = (new ResourceGenerator($mode))->generate();
-        }
-
-        return $result;
+        return AccessModeAll::get();
     }
 }
