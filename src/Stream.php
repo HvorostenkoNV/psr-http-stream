@@ -1,54 +1,55 @@
 <?php
+
 declare(strict_types=1);
 
 namespace HNV\Http\Stream;
 
-use TypeError;
-use RuntimeException;
 use Psr\Http\Message\StreamInterface;
+use RuntimeException;
+use TypeError;
 
-use function is_numeric;
-use function is_resource;
-use function gettype;
+use function fclose;
 use function fread;
-use function fwrite;
+use function fseek;
 use function fstat;
 use function ftell;
-use function fseek;
-use function fclose;
+use function fwrite;
+use function gettype;
+use function is_numeric;
+use function is_resource;
 use function stream_get_contents;
 use function stream_get_meta_data;
 
 use const SEEK_SET;
-/** ***********************************************************************************************
- * PSR-7 StreamInterface implementation
- *
- * @package HNV\Psr\Http\Stream
- * @author  Hvorostenko
- *************************************************************************************************/
+
+/**
+ * PSR-7 StreamInterface implementation.
+ */
 class Stream extends AbstractStream implements StreamInterface
 {
-    private $resource = null;
-    /** **********************************************************************
+    private $resource;
+
+    /**
      * Constructor.
      *
-     * @param   resource $resource          Resource.
-     ************************************************************************/
+     * @param resource $resource resource
+     */
     public function __construct($resource)
     {
         if (!is_resource($resource)) {
             $argumentType   = gettype($resource);
             $methodName     = __METHOD__;
 
-            throw new TypeError("Argument 1 passed to $methodName() ".
-                "must be of the type resource, $argumentType given");
+            throw new TypeError("Argument 1 passed to {$methodName}() ".
+                "must be of the type resource, {$argumentType} given");
         }
 
         $this->resource = $resource;
     }
-    /** **********************************************************************
-     * @inheritDoc
-     ************************************************************************/
+
+    /**
+     * {@inheritDoc}
+     */
     public function close(): void
     {
         $resource = $this->detach();
@@ -57,9 +58,10 @@ class Stream extends AbstractStream implements StreamInterface
             fclose($resource);
         }
     }
-    /** **********************************************************************
-     * @inheritDoc
-     ************************************************************************/
+
+    /**
+     * {@inheritDoc}
+     */
     public function detach()
     {
         $resource = $this->resource;
@@ -68,9 +70,10 @@ class Stream extends AbstractStream implements StreamInterface
 
         return $resource;
     }
-    /** **********************************************************************
-     * @inheritDoc
-     ************************************************************************/
+
+    /**
+     * {@inheritDoc}
+     */
     public function getSize(): ?int
     {
         $resourceStats = is_resource($this->resource)
@@ -81,9 +84,10 @@ class Stream extends AbstractStream implements StreamInterface
             ? (int) $resourceStats['size']
             : null;
     }
-    /** **********************************************************************
-     * @inheritDoc
-     ************************************************************************/
+
+    /**
+     * {@inheritDoc}
+     */
     public function tell(): int
     {
         if (!$this->isReadable()) {
@@ -100,9 +104,10 @@ class Stream extends AbstractStream implements StreamInterface
 
         return $cursorPosition;
     }
-    /** **********************************************************************
-     * @inheritDoc
-     ************************************************************************/
+
+    /**
+     * {@inheritDoc}
+     */
     public function seek(int $offset, int $whence = SEEK_SET): void
     {
         if (!$this->isSeekable()) {
@@ -115,9 +120,10 @@ class Stream extends AbstractStream implements StreamInterface
             throw new RuntimeException('stream reading error');
         }
     }
-    /** **********************************************************************
-     * @inheritDoc
-     ************************************************************************/
+
+    /**
+     * {@inheritDoc}
+     */
     public function read(int $length): string
     {
         if ($length < 0) {
@@ -137,9 +143,10 @@ class Stream extends AbstractStream implements StreamInterface
 
         return $readResult;
     }
-    /** **********************************************************************
-     * @inheritDoc
-     ************************************************************************/
+
+    /**
+     * {@inheritDoc}
+     */
     public function write(string $string): int
     {
         if (!$this->isWritable()) {
@@ -154,9 +161,10 @@ class Stream extends AbstractStream implements StreamInterface
 
         return $writeResult;
     }
-    /** **********************************************************************
-     * @inheritDoc
-     ************************************************************************/
+
+    /**
+     * {@inheritDoc}
+     */
     public function getContents(): string
     {
         if (!$this->isReadable()) {
@@ -164,16 +172,16 @@ class Stream extends AbstractStream implements StreamInterface
         }
 
         $readResult = stream_get_contents($this->resource);
-
         if ($readResult === false) {
             throw new RuntimeException('stream reading error');
         }
 
         return $readResult;
     }
-    /** **********************************************************************
-     * @inheritDoc
-     ************************************************************************/
+
+    /**
+     * {@inheritDoc}
+     */
     public function getMetadata(string $key = ''): mixed
     {
         $resourceActive = is_resource($this->resource);
@@ -190,7 +198,7 @@ class Stream extends AbstractStream implements StreamInterface
                 'wrapper_data'  => '',
                 'mode'          => '',
                 'seekable'      => false,
-                'uri'           => ''
+                'uri'           => '',
             ];
 
         if (!$resourceActive && $askFullData) {

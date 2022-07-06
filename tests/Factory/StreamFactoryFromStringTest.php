@@ -1,83 +1,77 @@
 <?php
+
 declare(strict_types=1);
 
 namespace HNV\Http\StreamTests\Factory;
 
-use Throwable;
-use PHPUnit\Framework\TestCase;
 use HNV\Http\Helper\Generator\Text as TextGenerator;
 use HNV\Http\Stream\StreamFactory;
-/** ***********************************************************************************************
+use HNV\Http\StreamTests\AbstractStreamTest;
+
+/**
  * PSR-7 StreamFactoryInterface implementation test.
  *
  * Testing building stream from string behavior.
  *
- * @package HNV\Psr\Http\Tests\Stream
- * @author  Hvorostenko
- *************************************************************************************************/
-class StreamFactoryFromStringTest extends TestCase
+ * @internal
+ * @covers StreamFactory
+ * @small
+ */
+class StreamFactoryFromStringTest extends AbstractStreamTest
 {
-    /** **********************************************************************
-     * Test "StreamFactory::createStream" creates a new stream with expected condition.
-     *
+    /**
      * @covers          StreamFactory::createStream
      * @dataProvider    dataProviderValues
-     *
-     * @param           string $content                 Content.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
+     */
     public function testCreating(string $content): void
     {
         $stream = (new StreamFactory())->createStream($content);
 
-        self::assertEquals(
+        static::assertSame(
             0,
             $stream->tell(),
             "Action \"StreamFactory->createStream->tell\" returned unexpected result.\n".
             "Expected result is \"0\".\n".
-            "Caught result is \"NOT 0\"."
+            'Caught result is "NOT 0".'
         );
-        self::assertFalse(
+        static::assertFalse(
             $stream->eof(),
             "Action \"StreamFactory->createStream->eof\" returned unexpected result.\n".
             "Expected result is \"false\".\n".
-            "Caught result is \"NOT false\"."
+            'Caught result is "NOT false".'
         );
-        self::assertTrue(
+        static::assertTrue(
             $stream->isSeekable(),
             "Action \"StreamFactory->createStream->isSeekable\" returned unexpected result.\n".
             "Expected result is \"true\".\n".
-            "Caught result is \"NOT true\"."
+            'Caught result is "NOT true".'
         );
-        self::assertTrue(
+        static::assertTrue(
             $stream->isReadable(),
             "Action \"StreamFactory->createStream->isReadable\" returned unexpected result.\n".
             "Expected result is \"true\".\n".
-            "Caught result is \"NOT true\"."
+            'Caught result is "NOT true".'
         );
-        self::assertTrue(
+        static::assertTrue(
             $stream->isWritable(),
             "Action \"StreamFactory->createStream->isWritable\" returned unexpected result.\n".
             "Expected result is \"true\".\n".
-            "Caught result is \"NOT true\"."
+            'Caught result is "NOT true".'
         );
 
         $contentCaught = $stream->getContents();
-        self::assertEquals(
+        static::assertSame(
             $content,
             $contentCaught,
             "Action \"StreamFactory->createStream->getContents\" returned unexpected result.\n".
-            "Expected result is \"$content\".\n".
-            "Caught result is \"$contentCaught\"."
+            "Expected result is \"{$content}\".\n".
+            "Caught result is \"{$contentCaught}\"."
         );
     }
-    /** **********************************************************************
+
+    /**
      * Data provider: random text content.
-     *
-     * @return  array                                   Data.
-     ************************************************************************/
+     */
     public function dataProviderValues(): array
     {
         $result = [];

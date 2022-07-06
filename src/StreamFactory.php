@@ -1,38 +1,40 @@
 <?php
+
 declare(strict_types=1);
 
 namespace HNV\Http\Stream;
 
+use HNV\Http\Helper\Collection\Resource\{
+    AccessMode,
+    AccessModeType,
+};
+use HNV\Http\Helper\Normalizer\{
+    NormalizingException,
+    Resource\AccessMode as AccessModeNormalizer,
+};
 use InvalidArgumentException;
-use RuntimeException;
 use Psr\Http\{
+    Message\StreamFactoryInterface,
     Message\StreamInterface,
-    Message\StreamFactoryInterface
 };
-use HNV\Http\Helper\Normalizer\NormalizingException;
-use HNV\Http\Stream\Normalizer\ResourceAccessMode as ResourceAccessModeNormalizer;
-use HNV\Http\Stream\Collection\ResourceAccessMode\{
-    ReadableAndWritable as ResourceAccessModeReadableAndWritable
-};
+use RuntimeException;
 
-use function strlen;
-use function fopen;
 use function file_exists;
-/** ***********************************************************************************************
+use function fopen;
+use function strlen;
+
+/**
  * PSR-7 StreamFactoryInterface implementation.
- *
- * @package HNV\Psr\Http\Stream
- * @author  Hvorostenko
- *************************************************************************************************/
+ */
 class StreamFactory implements StreamFactoryInterface
 {
-    /** **********************************************************************
-     * @inheritDoc
-     ************************************************************************/
+    /**
+     * {@inheritDoc}
+     */
     public function createStream(string $content = ''): StreamInterface
     {
-        $mode       = ResourceAccessModeReadableAndWritable::get()[0];
-        $resource   = fopen('php://temp', $mode);
+        $mode       = AccessMode::get(AccessModeType::READABLE_AND_WRITABLE)[0];
+        $resource   = fopen('php://temp', $mode->value);
         $stream     = $this->createStreamFromResource($resource);
 
         if (strlen($content) > 0) {
@@ -40,37 +42,38 @@ class StreamFactory implements StreamFactoryInterface
                 $stream->write($content);
                 $stream->rewind();
             } catch (RuntimeException) {
-
             }
         }
 
         return $stream;
     }
-    /** **********************************************************************
-     * @inheritDoc
-     ************************************************************************/
+
+    /**
+     * {@inheritDoc}
+     */
     public function createStreamFromFile(string $filename, string $mode = 'r'): StreamInterface
     {
         if (!file_exists($filename)) {
-            throw new RuntimeException("file $filename is not exist");
+            throw new RuntimeException("file {$filename} is not exist");
         }
 
         try {
-            $modeNormalized = ResourceAccessModeNormalizer::normalize($mode);
-            $resource       = fopen($filename, $modeNormalized);
+            $modeNormalized = AccessModeNormalizer::normalize($mode);
+            $resource       = fopen($filename, $modeNormalized->value);
         } catch (NormalizingException $exception) {
-            throw new InvalidArgumentException("mode $mode is invalid", 0, $exception);
+            throw new InvalidArgumentException("mode {$mode} is invalid", 0, $exception);
         }
 
         if ($resource === false) {
-            throw new RuntimeException("file $filename cannot be opened");
+            throw new RuntimeException("file {$filename} cannot be opened");
         }
 
         return $this->createStreamFromResource($resource);
     }
-    /** **********************************************************************
-     * @inheritDoc
-     ************************************************************************/
+
+    /**
+     * {@inheritDoc}
+     */
     public function createStreamFromResource($resource): StreamInterface
     {
         $stream = new Stream($resource);
@@ -78,7 +81,6 @@ class StreamFactory implements StreamFactoryInterface
         try {
             $stream->rewind();
         } catch (RuntimeException) {
-
         }
 
         return $stream;
