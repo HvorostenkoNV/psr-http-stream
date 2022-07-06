@@ -1,67 +1,51 @@
 <?php
+
 declare(strict_types=1);
 
 namespace HNV\Http\StreamTests;
 
-use Throwable;
-use PHPUnit\Framework\TestCase;
+use HNV\Http\Helper\Collection\Resource\AccessModeType;
 use HNV\Http\Helper\Generator\Text as TextGenerator;
-use HNV\Http\StreamTests\Generator\{
-    Resource\Writable               as ResourceGeneratorWritable,
-    Resource\WritableOnly           as ResourceGeneratorWritableOnly,
-    Resource\ReadableAndWritable    as ResourceGeneratorReadableAndWritable,
-    Resource\All                    as ResourceGeneratorAll
-};
 use HNV\Http\Stream\Stream;
 
 use function fwrite;
-use function feof;
-use function fgetc;
-/** ***********************************************************************************************
+
+/**
  * PSR-7 StreamInterface implementation test.
  *
  * Testing stream end of file info providing.
  *
- * @package HNV\Psr\Http\Tests\Stream
- * @author  Hvorostenko
- *************************************************************************************************/
-class StreamEndOfFileTest extends TestCase
+ * @internal
+ * @covers Stream
+ * @small
+ */
+class StreamEndOfFileTest extends AbstractStreamTest
 {
-    /** **********************************************************************
-     * Test "Stream::eof" provides true if the stream is at the end of the stream.
-     *
+    /**
      * @covers          Stream::eof
      * @dataProvider    dataProviderResourcesWithValues
      *
-     * @param           resource    $resource           Recourse.
-     * @param           bool        $endOfFileExpected  Position pointer is in the end.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
+     * @param resource $resource recourse
+     */
     public function testEof($resource, bool $endOfFileExpected): void
     {
         $endOfFileCaught = (new Stream($resource))->eof();
 
-        self::assertEquals(
+        static::assertSame(
             $endOfFileExpected,
             $endOfFileCaught,
             "Action \"Stream->eof\" returned unexpected result.\n".
-            "Expected result is \"$endOfFileExpected\".\n".
-            "Caught result is \"$endOfFileCaught\"."
+            "Expected result is \"{$endOfFileExpected}\".\n".
+            "Caught result is \"{$endOfFileCaught}\"."
         );
     }
-    /** **********************************************************************
-     * Test "Stream::eof" behavior with stream in a closed state.
-     *
+
+    /**
      * @covers          Stream::eof
      * @dataProvider    dataProviderResources
      *
-     * @param           resource $resource              Recourse.
-     *
-     * @return  void
-     * @throws  Throwable
-     ************************************************************************/
+     * @param resource $resource recourse
+     */
     public function testEofInClosedState($resource): void
     {
         $stream = new Stream($resource);
@@ -69,24 +53,20 @@ class StreamEndOfFileTest extends TestCase
         $stream->rewind();
         $stream->close();
 
-        self::assertTrue(
+        static::assertTrue(
             $stream->eof(),
             "Action \"Stream->close->eof\" returned unexpected result.\n".
             "Expected result is \"true\".\n".
-            "Caught result is \"NOT true\"."
+            'Caught result is "NOT true".'
         );
     }
-    /** **********************************************************************
-     * Test "Stream::eof" behavior with stream in a detached state.
-     *
+
+    /**
      * @covers          Stream::eof
      * @dataProvider    dataProviderResources
      *
-     * @param           resource $resource              Recourse.
-     *
-     * @return  void
-     * @throws  Throwable
-     ************************************************************************/
+     * @param resource $resource recourse
+     */
     public function testEofInDetachedState($resource): void
     {
         $stream = new Stream($resource);
@@ -94,52 +74,36 @@ class StreamEndOfFileTest extends TestCase
         $stream->rewind();
         $stream->detach();
 
-        self::assertTrue(
+        static::assertTrue(
             $stream->eof(),
             "Action \"Stream->detach->eof\" returned unexpected result.\n".
             "Expected result is \"true\".\n".
-            "Caught result is \"NOT true\"."
+            'Caught result is "NOT true".'
         );
     }
-    /** **********************************************************************
-     * Data provider: resources, readable and writable.
-     *
-     * @return  array                                   Data.
-     ************************************************************************/
-    public function dataProviderResources(): array
-    {
-        $result = [];
 
-        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
-            $result[] = [$resource];
-        }
-
-        return $result;
-    }
-    /** **********************************************************************
+    /**
      * Data provider: resources with cursor pointer in the end.
-     *
-     * @return  array                                   Data.
-     ************************************************************************/
+     */
     public function dataProviderResourcesWithValues(): array
     {
         $result = [];
 
-        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
+        foreach ($this->generateResources(AccessModeType::ALL) as $resource) {
             $result[] = [$resource, false];
         }
-        foreach ( (new ResourceGeneratorWritable())->generate() as $resource) {
+        foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
             $content    = (new TextGenerator())->generate();
             fwrite($resource, $content);
             $result[]   = [$resource, false];
         }
-        foreach ((new ResourceGeneratorWritableOnly())->generate() as $resource) {
+        foreach ($this->generateResources(AccessModeType::WRITABLE_ONLY) as $resource) {
             $content    = (new TextGenerator())->generate();
             fwrite($resource, $content);
             $this->reachResourceEnd($resource);
             $result[]   = [$resource, false];
         }
-        foreach ((new ResourceGeneratorReadableAndWritable())->generate() as $resource) {
+        foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
             $content    = (new TextGenerator())->generate();
             fwrite($resource, $content);
             $this->reachResourceEnd($resource);
@@ -147,21 +111,5 @@ class StreamEndOfFileTest extends TestCase
         }
 
         return $result;
-    }
-    /** **********************************************************************
-     * Rewind resource to the end.
-     *
-     * @param   resource $resource                      Resource.
-     *
-     * @return  void
-     ************************************************************************/
-    private function reachResourceEnd($resource): void
-    {
-        while (!feof($resource)) {
-            $result = fgetc($resource);
-            if($result === false) {
-                break;
-            }
-        }
     }
 }

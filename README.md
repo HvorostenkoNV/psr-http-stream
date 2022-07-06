@@ -1,4 +1,4 @@
-# PSR helper pack
+# PSR Stream pack
 ### build and up all containers
 ```
 cd docker
