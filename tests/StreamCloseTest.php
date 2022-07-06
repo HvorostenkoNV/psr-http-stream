@@ -1,107 +1,79 @@
 <?php
+
 declare(strict_types=1);
 
 namespace HNV\Http\StreamTests;
 
-use Throwable;
-use PHPUnit\Framework\TestCase;
-use HNV\Http\StreamTests\Generator\Resource\All as ResourceGeneratorAll;
 use HNV\Http\Stream\Stream;
 
 use function is_resource;
-/** ***********************************************************************************************
+
+/**
  * PSR-7 StreamInterface implementation test.
  *
  * Testing stream closing behavior.
  *
- * @package HNV\Psr\Http\Tests\Stream
- * @author  Hvorostenko
- *************************************************************************************************/
-class StreamCloseTest extends TestCase
+ * @internal
+ * @covers Stream
+ * @small
+ */
+class StreamCloseTest extends AbstractStreamTest
 {
-    /** **********************************************************************
-     * Test "Stream::close" closes underlying resource.
-     *
+    /**
      * @covers          Stream::close
      * @dataProvider    dataProviderResources
      *
-     * @param           resource $resource              Recourse.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
+     * @param resource $resource recourse
+     */
     public function testClose($resource): void
     {
         $stream = new Stream($resource);
         $stream->close();
 
-        self::assertFalse(
+        static::assertFalse(
             is_resource($resource),
             "Action \"Stream->close\" showed unexpected behavior.\n".
             "Expects underlying resource will be closed\n".
             'Expects underlying resource is not closed'
         );
     }
-    /** **********************************************************************
-     * Test "Stream::close" DO NOT closes underlying resource, if stream is detached.
-     *
+
+    /**
      * @covers          Stream::close
      * @dataProvider    dataProviderResources
      *
-     * @param           resource $resource              Recourse.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
+     * @param resource $resource recourse
+     */
     public function testCloseOnDetachedResource($resource): void
     {
         $stream             = new Stream($resource);
         $resourceDetached   = $stream->detach();
         $stream->close();
 
-        self::assertTrue(
+        static::assertTrue(
             is_resource($resourceDetached),
             "Action \"Stream->detach->close\" showed unexpected behavior.\n".
             "Expects underlying resource will be NOT closed.\n".
             'Expects underlying resource is closed'
         );
     }
-    /** **********************************************************************
-     * Test "Stream::__destruct" closes underlying resource.
-     *
+
+    /**
      * @covers          Stream::__destruct
      * @dataProvider    dataProviderResources
      *
-     * @param           resource $resource              Recourse.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
+     * @param resource $resource recourse
+     */
     public function testDestructorClosesResource($resource): void
     {
         $stream = new Stream($resource);
         unset($stream);
 
-        self::assertFalse(
+        static::assertFalse(
             is_resource($resource),
             "Action \"Stream->__destruct\" showed unexpected behavior.\n".
             "Expects underlying resource will be closed.\n".
             'Expects underlying resource is not closed'
         );
-    }
-    /** **********************************************************************
-     * Data provider: resources, readable and writable.
-     *
-     * @return  array                                   Data.
-     ************************************************************************/
-    public function dataProviderResources(): array
-    {
-        $result = [];
-
-        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
-            $result[] = [$resource];
-        }
-
-        return $result;
     }
 }

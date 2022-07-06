@@ -1,33 +1,31 @@
 <?php
+
 declare(strict_types=1);
 
 namespace HNV\Http\StreamTests;
 
-use Throwable;
-use PHPUnit\Framework\TestCase;
+use HNV\Http\Helper\Collection\Resource\AccessModeType;
 use HNV\Http\Helper\Generator\Text as TextGenerator;
-use HNV\Http\StreamTests\Generator\{
-    Resource\ReadableAndWritable    as ResourceGeneratorReadableAndWritable,
-    Resource\All                    as ResourceGeneratorAll
-};
 use HNV\Http\Stream\Stream;
 
-use function var_export;
-use function strlen;
 use function array_keys;
-use function fwrite;
 use function fseek;
+use function fwrite;
 use function rewind;
 use function stream_get_meta_data;
-/** ***********************************************************************************************
+use function strlen;
+use function var_export;
+
+/**
  * PSR-7 StreamInterface implementation test.
  *
  * Testing stream metadata info work with.
  *
- * @package HNV\Psr\Http\Tests\Stream
- * @author  Hvorostenko
- *************************************************************************************************/
-class StreamGetMetadataTest extends TestCase
+ * @internal
+ * @covers Stream
+ * @small
+ */
+class StreamGetMetadataTest extends AbstractStreamTest
 {
     private const METADATA_DEFAULT_VALUES = [
         'timed_out'     => true,
@@ -39,120 +37,96 @@ class StreamGetMetadataTest extends TestCase
         'wrapper_data'  => '',
         'mode'          => '',
         'seekable'      => false,
-        'uri'           => ''
+        'uri'           => '',
     ];
-    /** **********************************************************************
-     * Test "Stream::getMetadata" provides stream metadata as an associative array.
-     *
+
+    /**
      * @covers          Stream::getMetadata
      * @dataProvider    dataProviderResourcesWithMetadata
      *
-     * @param           resource    $resource           Resource.
-     * @param           array       $metadataExpected   Metadata expected.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
+     * @param resource $resource resource
+     */
     public function testGetMetadata($resource, array $metadataExpected): void
     {
         $metadataCaught             = (new Stream($resource))->getMetadata();
         $metadataExpectedPrintable  = var_export($metadataExpected, true);
         $metadataCaughtPrintable    = var_export($metadataCaught, true);
 
-        self::assertEquals(
+        static::assertSame(
             $metadataExpected,
             $metadataCaught,
             "Action \"Stream->getMetadata\" returned unexpected result.\n".
-            "Expected result is \"$metadataExpectedPrintable\".\n".
-            "Caught result is \"$metadataCaughtPrintable\"."
+            "Expected result is \"{$metadataExpectedPrintable}\".\n".
+            "Caught result is \"{$metadataCaughtPrintable}\"."
         );
     }
-    /** **********************************************************************
-     * Test "Stream::getMetadata" behavior with stream in a closed state.
-     *
+
+    /**
      * @covers          Stream::getMetadata
      * @dataProvider    dataProviderResources
      *
-     * @param           resource $resource              Resource.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
+     * @param resource $resource resource
+     */
     public function testGetMetadataInClosedState($resource): void
     {
         $stream = new Stream($resource);
         $stream->close();
 
-        self::assertNull(
+        static::assertNull(
             $stream->getMetadata(),
             "Action \"Stream->close->getMetadata\" returned unexpected result.\n".
             "Expected result is \"null\".\n".
-            "Caught result is \"NOT null\"."
+            'Caught result is "NOT null".'
         );
     }
-    /** **********************************************************************
-     * Test "Stream::getMetadata" behavior with stream in a detached state.
-     *
+
+    /**
      * @covers          Stream::getMetadata
      * @dataProvider    dataProviderResources
      *
-     * @param           resource $resource              Resource.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
+     * @param resource $resource resource
+     */
     public function testGetMetadataInDetachedState($resource): void
     {
         $stream = new Stream($resource);
         $stream->detach();
 
-        self::assertNull(
+        static::assertNull(
             $stream->getMetadata(),
             "Action \"Stream->detach->getMetadata\" returned unexpected result.\n".
             "Expected result is \"null\".\n".
-            "Caught result is \"NOT null\"."
+            'Caught result is "NOT null".'
         );
     }
-    /** **********************************************************************
-     * Test "Stream::getMetadata" provides metadata value by specific key.
-     *
+
+    /**
      * @covers          Stream::getMetadata
      * @dataProvider    dataProviderResourcesWithMetadataByKey
      *
-     * @param           resource    $resource           Resource.
-     * @param           string      $key                Specific key.
-     * @param           mixed       $metadataExpected   Metadata expected.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
+     * @param resource $resource resource
+     */
     public function testGetMetadataByKey($resource, string $key, mixed $metadataExpected): void
     {
         $metadataCaught             = (new Stream($resource))->getMetadata($key);
         $metadataExpectedPrintable  = var_export($metadataExpected, true);
         $metadataCaughtPrintable    = var_export($metadataCaught, true);
 
-        self::assertEquals(
+        static::assertSame(
             $metadataExpected,
             $metadataCaught,
             "Action \"Stream->getMetadata\" returned unexpected result.\n".
-            "Action was called with parameters (key => $key).\n".
-            "Expected result is \"$metadataExpectedPrintable\".\n".
-            "Caught result is \"$metadataCaughtPrintable\"."
+            "Action was called with parameters (key => {$key}).\n".
+            "Expected result is \"{$metadataExpectedPrintable}\".\n".
+            "Caught result is \"{$metadataCaughtPrintable}\"."
         );
     }
-    /** **********************************************************************
-     * Test "Stream::getMetadata" provides metadata value by specific key
-     * with stream in a closed state.
-     *
+
+    /**
      * @covers          Stream::getMetadata
      * @dataProvider    dataProviderResources
      *
-     * @param           resource $resource              Resource.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
+     * @param resource $resource resource
+     */
     public function testGetMetadataByKeyInClosedState($resource): void
     {
         $stream = new Stream($resource);
@@ -161,28 +135,23 @@ class StreamGetMetadataTest extends TestCase
         foreach (self::METADATA_DEFAULT_VALUES as $key => $valueExpected) {
             $valueCaught = $stream->getMetadata($key);
 
-            self::assertEquals(
+            static::assertSame(
                 $valueExpected,
                 $valueCaught,
                 "Action \"Stream->close->getMetadata\" returned unexpected result.\n".
-                "Action was called with parameters (key => $key).\n".
-                "Expected result is \"$valueExpected\".\n".
-                "Caught result is \"$valueCaught\"."
+                "Action was called with parameters (key => {$key}).\n".
+                "Expected result is \"{$valueExpected}\".\n".
+                "Caught result is \"{$valueCaught}\"."
             );
         }
     }
-    /** **********************************************************************
-     * Test "Stream::getMetadata" provides metadata value by specific key
-     * with stream in a detached state.
-     *
+
+    /**
      * @covers          Stream::getMetadata
      * @dataProvider    dataProviderResources
      *
-     * @param           resource $resource              Resource.
-     *
-     * @return          void
-     * @throws          Throwable
-     ************************************************************************/
+     * @param resource $resource resource
+     */
     public function testGetMetadataByKeyInDetachedState($resource): void
     {
         $stream = new Stream($resource);
@@ -191,55 +160,39 @@ class StreamGetMetadataTest extends TestCase
         foreach (self::METADATA_DEFAULT_VALUES as $key => $metadataExpected) {
             $metadataCaught = $stream->getMetadata($key);
 
-            self::assertEquals(
+            static::assertSame(
                 $metadataExpected,
                 $metadataCaught,
                 "Action \"Stream->detach->getMetadata\" returned unexpected result.\n".
-                "Action was called with parameters (key => $key).\n".
-                "Expected result is \"$metadataExpected\".\n".
-                "Caught result is \"$metadataCaught\"."
+                "Action was called with parameters (key => {$key}).\n".
+                "Expected result is \"{$metadataExpected}\".\n".
+                "Caught result is \"{$metadataCaught}\"."
             );
         }
     }
-    /** **********************************************************************
-     * Data provider: resources, readable and writable.
-     *
-     * @return  array                                   Data.
-     ************************************************************************/
-    public function dataProviderResources(): array
-    {
-        $result = [];
 
-        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
-            $result[] = [$resource];
-        }
-
-        return $result;
-    }
-    /** **********************************************************************
+    /**
      * Data provider: resources with metadata.
-     *
-     * @return  array                                   Data.
-     ************************************************************************/
+     */
     public function dataProviderResourcesWithMetadata(): array
     {
         $result = [];
 
-        foreach ((new ResourceGeneratorAll())->generate() as $resource) {
+        foreach ($this->generateResources(AccessModeType::ALL) as $resource) {
             $result[] = [$resource, stream_get_meta_data($resource)];
         }
-        foreach ((new ResourceGeneratorReadableAndWritable())->generate() as $resource) {
+        foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
             $content    = (new TextGenerator())->generate();
             fwrite($resource, $content);
             $result[]   = [$resource, stream_get_meta_data($resource)];
         }
-        foreach ((new ResourceGeneratorReadableAndWritable())->generate() as $resource) {
+        foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
             $content    = (new TextGenerator())->generate();
             fwrite($resource, $content);
             rewind($resource);
             $result[]   = [$resource, stream_get_meta_data($resource)];
         }
-        foreach ((new ResourceGeneratorReadableAndWritable())->generate() as $resource) {
+        foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
             $content    = (new TextGenerator())->generate();
             fwrite($resource, $content);
             fseek($resource, (int) (strlen($content) / 2));
@@ -248,11 +201,10 @@ class StreamGetMetadataTest extends TestCase
 
         return $result;
     }
-    /** **********************************************************************
+
+    /**
      * Data provider: resources with metadata by key.
-     *
-     * @return  array                                   Data.
-     ************************************************************************/
+     */
     public function dataProviderResourcesWithMetadataByKey(): array
     {
         $availableKeys      = array_keys(self::METADATA_DEFAULT_VALUES);
