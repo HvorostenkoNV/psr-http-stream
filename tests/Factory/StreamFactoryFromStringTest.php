@@ -6,72 +6,47 @@ namespace HNV\Http\StreamTests\Factory;
 
 use HNV\Http\Helper\Generator\Text as TextGenerator;
 use HNV\Http\Stream\StreamFactory;
-use HNV\Http\StreamTests\AbstractStreamTest;
+use HNV\Http\StreamTests\AbstractStreamTestCase;
+use PHPUnit\Framework\Attributes;
 
 /**
- * PSR-7 StreamFactoryInterface implementation test.
- *
- * Testing building stream from string behavior.
- *
  * @internal
- * @covers StreamFactory
- * @small
  */
-class StreamFactoryFromStringTest extends AbstractStreamTest
+#[Attributes\CoversClass(StreamFactory::class)]
+#[Attributes\Small]
+class StreamFactoryFromStringTest extends AbstractStreamTestCase
 {
-    /**
-     * @covers          StreamFactory::createStream
-     * @dataProvider    dataProviderValues
-     */
-    public function testCreating(string $content): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderValues')]
+    public function create(string $content): void
     {
         $stream = (new StreamFactory())->createStream($content);
 
         static::assertSame(
             0,
             $stream->tell(),
-            "Action \"StreamFactory->createStream->tell\" returned unexpected result.\n".
-            "Expected result is \"0\".\n".
-            'Caught result is "NOT 0".'
+            'Expects built stream is rewound'
         );
         static::assertFalse(
             $stream->eof(),
-            "Action \"StreamFactory->createStream->eof\" returned unexpected result.\n".
-            "Expected result is \"false\".\n".
-            'Caught result is "NOT false".'
+            'Expects built stream is rewound'
         );
         static::assertTrue(
             $stream->isSeekable(),
-            "Action \"StreamFactory->createStream->isSeekable\" returned unexpected result.\n".
-            "Expected result is \"true\".\n".
-            'Caught result is "NOT true".'
+            'Expects built stream is seekable'
         );
         static::assertTrue(
             $stream->isReadable(),
-            "Action \"StreamFactory->createStream->isReadable\" returned unexpected result.\n".
-            "Expected result is \"true\".\n".
-            'Caught result is "NOT true".'
+            'Expects built stream is readable'
         );
         static::assertTrue(
             $stream->isWritable(),
-            "Action \"StreamFactory->createStream->isWritable\" returned unexpected result.\n".
-            "Expected result is \"true\".\n".
-            'Caught result is "NOT true".'
+            'Expects built stream is writable'
         );
 
-        $contentCaught = $stream->getContents();
-        static::assertSame(
-            $content,
-            $contentCaught,
-            "Action \"StreamFactory->createStream->getContents\" returned unexpected result.\n".
-            "Expected result is \"{$content}\".\n".
-            "Caught result is \"{$contentCaught}\"."
-        );
+        static::assertSame($content, $stream->getContents());
     }
 
-    /**
-     * Data provider: random text content.
-     */
     public function dataProviderValues(): array
     {
         $result = [];

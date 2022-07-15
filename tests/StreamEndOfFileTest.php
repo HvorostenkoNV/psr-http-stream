@@ -7,46 +7,35 @@ namespace HNV\Http\StreamTests;
 use HNV\Http\Helper\Collection\Resource\AccessModeType;
 use HNV\Http\Helper\Generator\Text as TextGenerator;
 use HNV\Http\Stream\Stream;
+use PHPUnit\Framework\Attributes;
 
 use function fwrite;
 
 /**
- * PSR-7 StreamInterface implementation test.
- *
- * Testing stream end of file info providing.
- *
  * @internal
- * @covers Stream
- * @small
  */
-class StreamEndOfFileTest extends AbstractStreamTest
+#[Attributes\CoversClass(Stream::class)]
+#[Attributes\Small]
+class StreamEndOfFileTest extends AbstractStreamTestCase
 {
     /**
-     * @covers          Stream::eof
-     * @dataProvider    dataProviderResourcesWithValues
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testEof($resource, bool $endOfFileExpected): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithValues')]
+    public function eof($resource, bool $endOfFileExpected): void
     {
         $endOfFileCaught = (new Stream($resource))->eof();
 
-        static::assertSame(
-            $endOfFileExpected,
-            $endOfFileCaught,
-            "Action \"Stream->eof\" returned unexpected result.\n".
-            "Expected result is \"{$endOfFileExpected}\".\n".
-            "Caught result is \"{$endOfFileCaught}\"."
-        );
+        static::assertSame($endOfFileExpected, $endOfFileCaught);
     }
 
     /**
-     * @covers          Stream::eof
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testEofInClosedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function eofOnClosedStream($resource): void
     {
         $stream = new Stream($resource);
 
@@ -55,19 +44,16 @@ class StreamEndOfFileTest extends AbstractStreamTest
 
         static::assertTrue(
             $stream->eof(),
-            "Action \"Stream->close->eof\" returned unexpected result.\n".
-            "Expected result is \"true\".\n".
-            'Caught result is "NOT true".'
+            'Expects [close] operation WILL NOT change stream pointer position'
         );
     }
 
     /**
-     * @covers          Stream::eof
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testEofInDetachedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function eofOnDetachedStream($resource): void
     {
         $stream = new Stream($resource);
 
@@ -76,15 +62,10 @@ class StreamEndOfFileTest extends AbstractStreamTest
 
         static::assertTrue(
             $stream->eof(),
-            "Action \"Stream->detach->eof\" returned unexpected result.\n".
-            "Expected result is \"true\".\n".
-            'Caught result is "NOT true".'
+            'Expects [detach] operation WILL NOT change stream pointer position'
         );
     }
 
-    /**
-     * Data provider: resources with cursor pointer in the end.
-     */
     public function dataProviderResourcesWithValues(): array
     {
         $result = [];

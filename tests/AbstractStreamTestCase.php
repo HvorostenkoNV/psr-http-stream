@@ -17,16 +17,8 @@ use PHPUnit\Framework\TestCase;
 use function feof;
 use function fgetc;
 
-/**
- * Abstract stream test class.
- *
- * Provides several helpfully methods.
- */
-abstract class AbstractStreamTest extends TestCase
+abstract class AbstractStreamTestCase extends TestCase
 {
-    /**
-     * Data provider: resources.
-     */
     public function dataProviderResources(): array
     {
         $result = [];
@@ -55,9 +47,7 @@ abstract class AbstractStreamTest extends TestCase
     }
 
     /**
-     * Rewind resource to the end.
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
     protected function reachResourceEnd($resource): void
     {

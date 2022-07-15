@@ -7,47 +7,36 @@ namespace HNV\Http\StreamTests;
 use HNV\Http\Helper\Collection\Resource\AccessModeType;
 use HNV\Http\Helper\Generator\Text as TextGenerator;
 use HNV\Http\Stream\Stream;
+use PHPUnit\Framework\Attributes;
 
 use function fwrite;
 use function strlen;
 
 /**
- * PSR-7 StreamInterface implementation test.
- *
- * Testing stream size info providing.
- *
  * @internal
- * @covers Stream
- * @small
  */
-class StreamSizeTest extends AbstractStreamTest
+#[Attributes\CoversClass(Stream::class)]
+#[Attributes\Small]
+class StreamSizeTest extends AbstractStreamTestCase
 {
     /**
-     * @covers          Stream::getSize
-     * @dataProvider    dataProviderResourcesWithSizeValue
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testGetSize($resource, int $sizeExpected): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithSizeValue')]
+    public function getSize($resource, int $sizeExpected): void
     {
         $sizeCaught = (new Stream($resource))->getSize();
 
-        static::assertSame(
-            $sizeExpected,
-            $sizeCaught,
-            "Action \"Stream->getSize\" returned unexpected result.\n".
-            "Expected result is \"{$sizeExpected}\".\n".
-            "Caught result is \"{$sizeCaught}\"."
-        );
+        static::assertSame($sizeExpected, $sizeCaught);
     }
 
     /**
-     * @covers          Stream::getSize
-     * @dataProvider    dataProviderResourcesWithDataToWrite
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testGetSizeInClosedState($resource, string $content): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithDataToWrite')]
+    public function getSizeOnClosedStream($resource, string $content): void
     {
         $stream = new Stream($resource);
 
@@ -56,19 +45,16 @@ class StreamSizeTest extends AbstractStreamTest
 
         static::assertNull(
             $stream->getSize(),
-            "Action \"Stream->write->close->getSize\" returned unexpected result.\n".
-            "Expected result is \"null\".\n".
-            'Caught result is "NOT null".'
+            'Expects null during reading size of closed stream'
         );
     }
 
     /**
-     * @covers          Stream::getSize
-     * @dataProvider    dataProviderResourcesWithDataToWrite
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testGetSizeInDetachedState($resource, string $content): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithDataToWrite')]
+    public function getSizeOnDetachedStream($resource, string $content): void
     {
         $stream = new Stream($resource);
 
@@ -77,15 +63,10 @@ class StreamSizeTest extends AbstractStreamTest
 
         static::assertNull(
             $stream->getSize(),
-            "Action \"Stream->write->detach->getSize\" returned unexpected result.\n".
-            "Expected result is \"null\".\n".
-            'Caught result is "NOT null".'
+            'Expects null during reading size of detached stream'
         );
     }
 
-    /**
-     * Data provider: resources with data size.
-     */
     public function dataProviderResourcesWithSizeValue(): array
     {
         $result = [];
@@ -107,9 +88,6 @@ class StreamSizeTest extends AbstractStreamTest
         return $result;
     }
 
-    /**
-     * Data provider: resources with data to write.
-     */
     public function dataProviderResourcesWithDataToWrite(): array
     {
         $result = [];

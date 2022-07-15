@@ -6,78 +6,59 @@ namespace HNV\Http\StreamTests;
 
 use HNV\Http\Helper\Collection\Resource\AccessModeType;
 use HNV\Http\Stream\Stream;
+use PHPUnit\Framework\Attributes;
 
 /**
- * PSR-7 StreamInterface implementation test.
- *
- * Testing stream seekable state info providing.
- *
  * @internal
- * @covers Stream
- * @small
  */
-class StreamIsSeekableTest extends AbstractStreamTest
+#[Attributes\CoversClass(Stream::class)]
+#[Attributes\Small]
+class StreamIsSeekableTest extends AbstractStreamTestCase
 {
     /**
-     * @covers          Stream::isSeekable
-     * @dataProvider    dataProviderResourcesWithSeekingStateValues
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testIsSeekable($resource, bool $stateExpected): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithSeekingStateValues')]
+    public function isSeekable($resource, bool $stateExpected): void
     {
         $stateCaught = (new Stream($resource))->isSeekable();
 
-        static::assertSame(
-            $stateExpected,
-            $stateCaught,
-            "Action \"Stream->isSeekable\" returned unexpected result.\n".
-            "Expected result is \"{$stateExpected}\".\n".
-            "Caught result is \"{$stateCaught}\"."
-        );
+        static::assertSame($stateExpected, $stateCaught);
     }
 
     /**
-     * @covers          Stream::isSeekable
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testIsSeekableInClosedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function isSeekableOnClosedStream($resource): void
     {
         $stream = new Stream($resource);
         $stream->close();
 
         static::assertFalse(
             $stream->isSeekable(),
-            "Action \"Stream->close->isSeekable\" returned unexpected result.\n".
-            "Expected result is \"false\".\n".
-            'Caught result is "NOT false".'
+            'Expects closed stream is not seekable'
         );
     }
 
     /**
-     * @covers          Stream::isSeekable
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testIsSeekableInDetachedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function isSeekableOnDetachedStream($resource): void
     {
         $stream = new Stream($resource);
         $stream->detach();
 
         static::assertFalse(
             $stream->isSeekable(),
-            "Action \"Stream->detach->isSeekable\" returned unexpected result.\n".
-            "Expected result is \"false\".\n".
-            'Caught result is "NOT false".'
+            'Expects detached stream is not seekable'
         );
     }
 
-    /**
-     * Data provider: resources with their seekable state.
-     */
     public function dataProviderResourcesWithSeekingStateValues(): array
     {
         $result = [];

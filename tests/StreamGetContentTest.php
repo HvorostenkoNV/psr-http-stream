@@ -7,6 +7,7 @@ namespace HNV\Http\StreamTests;
 use HNV\Http\Helper\Collection\Resource\AccessModeType;
 use HNV\Http\Helper\Generator\Text as TextGenerator;
 use HNV\Http\Stream\Stream;
+use PHPUnit\Framework\Attributes;
 use RuntimeException;
 
 use function fseek;
@@ -16,108 +17,68 @@ use function strlen;
 use function substr;
 
 /**
- * PSR-7 StreamInterface implementation test.
- *
- * Testing stream content info providing.
- *
  * @internal
- * @covers Stream
- * @small
  */
-class StreamGetContentTest extends AbstractStreamTest
+#[Attributes\CoversClass(Stream::class)]
+#[Attributes\Small]
+class StreamGetContentTest extends AbstractStreamTestCase
 {
     /**
-     * @covers          Stream::getContents
-     * @dataProvider    dataProviderResourcesWithReadParametersValid
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testGetContents($resource, string $contentFull, string $contentExpected): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithReadParametersValid')]
+    public function getContents($resource, string $contentFull, string $contentExpected): void
     {
         $stream = new Stream($resource);
 
-        $contentCaught = $stream->getContents();
-        static::assertSame(
-            $contentExpected,
-            $contentCaught,
-            "Action \"Stream->getContents\" returned unexpected result.\n".
-            "Expected result is \"{$contentExpected}\".\n".
-            "Caught result is \"{$contentCaught}\"."
-        );
+        static::assertSame($contentExpected, $stream->getContents());
 
         $stream->rewind();
-        $contentCaught = $stream->getContents();
-        static::assertSame(
-            $contentFull,
-            $contentCaught,
-            "Action \"Stream->getContents->rewind->getContents\" returned unexpected result.\n".
-            "Expected result is \"{$contentFull}\".\n".
-            "Caught result is \"{$contentCaught}\"."
-        );
+        static::assertSame($contentFull, $stream->getContents());
     }
 
     /**
-     * @covers          Stream::getContents
-     * @dataProvider    dataProviderResourcesWithReadParametersValid
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testGetContentsChangesSeekPosition($resource, string $content): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithReadParametersValid')]
+    public function getContentsChangesSeekPosition($resource, string $content): void
     {
         $stream = new Stream($resource);
 
         $stream->rewind();
-        static::assertSame(
-            $content,
-            $stream->getContents(),
-            "Action \"Stream->rewind->getContents\" returned unexpected result.\n".
-            "Expected result is \"same content as was set\".\n".
-            'Caught result is "NOT the same".'
-        );
+        static::assertSame($content, $stream->getContents());
         static::assertSame(
             '',
             $stream->getContents(),
-            "Action \"Stream->rewind->getContents->getContents\" returned unexpected result.\n".
-            "Expected result is \"empty string\".\n".
-            'Caught result is "NOT empty string".'
+            'Expects [getContents] WILL chang stream pointer position, '.
+            'so after this method second usage you are going to get empty string'
         );
         $stream->rewind();
-        static::assertSame(
-            $content,
-            $stream->getContents(),
-            'Action "Stream->rewind->getContents->getContents->rewind->getContents"'.
-            " returned unexpected result.\n".
-            "Expected result is \"same content as was set\".\n".
-            'Caught result is "NOT the same".'
-        );
+        static::assertSame($content, $stream->getContents());
     }
 
     /**
-     * @covers          Stream::getContents
-     * @dataProvider    dataProviderResourcesWithReadParametersInvalid
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testGetContentsThrowsException($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithReadParametersInvalid')]
+    public function getContentsThrowsException($resource): void
     {
         $this->expectException(RuntimeException::class);
 
         (new Stream($resource))->getContents();
 
-        static::fail(
-            "Action \"Stream->getContents\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception on reading unreadable stream');
     }
 
     /**
-     * @covers          Stream::getContents
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testGetContentsInClosedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function getContentsOnClosedStream($resource): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -126,20 +87,15 @@ class StreamGetContentTest extends AbstractStreamTest
         $stream->close();
         $stream->getContents();
 
-        static::fail(
-            "Action \"Stream->close->getContents\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception on reading closed stream');
     }
 
     /**
-     * @covers          Stream::getContents
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testGetContentsInDetachedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function getContentsOnDetachedStream($resource): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -148,16 +104,9 @@ class StreamGetContentTest extends AbstractStreamTest
         $stream->detach();
         $stream->getContents();
 
-        static::fail(
-            "Action \"Stream->detach->getContents\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception on reading detached stream');
     }
 
-    /**
-     * Data provider: resources with data to read valid value.
-     */
     public function dataProviderResourcesWithReadParametersValid(): array
     {
         $result = [];
@@ -188,9 +137,6 @@ class StreamGetContentTest extends AbstractStreamTest
         return $result;
     }
 
-    /**
-     * Data provider: resources with data to read invalid value.
-     */
     public function dataProviderResourcesWithReadParametersInvalid(): array
     {
         $result = [];

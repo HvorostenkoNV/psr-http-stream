@@ -5,48 +5,37 @@ declare(strict_types=1);
 namespace HNV\Http\StreamTests;
 
 use HNV\Http\Stream\Stream;
+use PHPUnit\Framework\Attributes;
 use RuntimeException;
 
 use function ftell;
 
 /**
- * PSR-7 StreamInterface implementation test.
- *
- * Testing stream rewinding behavior.
- *
  * @internal
- * @covers Stream
- * @small
  */
-class StreamRewindTest extends AbstractStreamTest
+#[Attributes\CoversClass(Stream::class)]
+#[Attributes\Small]
+class StreamRewindTest extends AbstractStreamTestCase
 {
     /**
-     * @covers          Stream::rewind
-     * @dataProvider    dataProviderResourcesSeekable
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testRewind($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function rewind($resource): void
     {
         $stream = new Stream($resource);
         $stream->rewind();
 
-        static::assertSame(
-            0,
-            ftell($resource),
-            "Action \"Stream->rewind\" showed unexpected behavior.\n".
-            "Expects underlying resource is \"seeked to the beginning\".\n".
-            'Underlying resource is "NOT rewound".'
-        );
+        static::assertSame(0, ftell($resource));
     }
 
     /**
-     * @covers          Stream::rewind
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testRewindInClosedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function rewindOnClosedStream($resource): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -54,20 +43,15 @@ class StreamRewindTest extends AbstractStreamTest
         $stream->close();
         $stream->rewind();
 
-        static::fail(
-            "Action \"Stream->close->rewind\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception on rewinding closed stream');
     }
 
     /**
-     * @covers          Stream::rewind
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testRewindInDetachedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function rewindOnDetachedStream($resource): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -75,18 +59,6 @@ class StreamRewindTest extends AbstractStreamTest
         $stream->detach();
         $stream->rewind();
 
-        static::fail(
-            "Action \"Stream->detach->rewind\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
-    }
-
-    /**
-     * Data provider: seekable resources.
-     */
-    public function dataProviderResourcesSeekable(): array
-    {
-        return $this->dataProviderResources();
+        static::fail('Expects exception on rewinding detached stream');
     }
 }

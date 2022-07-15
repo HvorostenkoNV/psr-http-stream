@@ -22,16 +22,11 @@ use function stream_get_meta_data;
 
 use const SEEK_SET;
 
-/**
- * PSR-7 StreamInterface implementation.
- */
 class Stream extends AbstractStream implements StreamInterface
 {
     private $resource;
 
     /**
-     * Constructor.
-     *
      * @param resource $resource resource
      */
     public function __construct($resource)

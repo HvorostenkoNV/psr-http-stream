@@ -7,6 +7,7 @@ namespace HNV\Http\StreamTests;
 use HNV\Http\Helper\Collection\Resource\AccessModeType;
 use HNV\Http\Helper\Generator\Text as TextGenerator;
 use HNV\Http\Stream\Stream;
+use PHPUnit\Framework\Attributes;
 
 use function fseek;
 use function fwrite;
@@ -15,43 +16,31 @@ use function strlen;
 use function substr;
 
 /**
- * PSR-7 StreamInterface implementation test.
- *
- * Testing stream to string converting behavior.
- *
  * @internal
- * @covers Stream
- * @small
  */
-class StreamToStringConvertingTest extends AbstractStreamTest
+#[Attributes\CoversClass(Stream::class)]
+#[Attributes\Small]
+class StreamToStringConvertingTest extends AbstractStreamTestCase
 {
     /**
-     * @covers          Stream::__toString
-     * @dataProvider    dataProviderResourcesWithContent
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testRunProcess($resource, string $content): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithContent')]
+    public function toStringCast($resource, string $content): void
     {
         $stream         = new Stream($resource);
         $streamAsString = (string) $stream;
 
-        static::assertSame(
-            $content,
-            $streamAsString,
-            "Action \"Stream->__toString\" returned unexpected result.\n".
-            "Expected result is \"{$content}\".\n".
-            "Caught result is \"{$streamAsString}\"."
-        );
+        static::assertSame($content, $streamAsString);
     }
 
     /**
-     * @covers          Stream::__toString
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testRunProcessInClosedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function toStringOnClosedStream($resource): void
     {
         $stream = new Stream($resource);
         $stream->close();
@@ -59,19 +48,16 @@ class StreamToStringConvertingTest extends AbstractStreamTest
         static::assertSame(
             '',
             (string) $stream,
-            "Action \"Stream->close->__toString\" returned unexpected result.\n".
-            "Expected result is \"empty string\".\n".
-            'Caught result is "NOT empty string".'
+            'Expects empty string on casting to string closed stream'
         );
     }
 
     /**
-     * @covers          Stream::__toString
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testRunProcessInDetachedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function toStringOnDetachedStream($resource): void
     {
         $stream = new Stream($resource);
         $stream->detach();
@@ -79,15 +65,10 @@ class StreamToStringConvertingTest extends AbstractStreamTest
         static::assertSame(
             '',
             (string) $stream,
-            "Action \"Stream->detach->__toString\" returned unexpected result.\n".
-            "Expected result is \"empty string\".\n".
-            'Caught result is "NOT empty string".'
+            'Expects empty string on casting to string detached stream'
         );
     }
 
-    /**
-     * Data provider: resources with data.
-     */
     public function dataProviderResourcesWithContent(): array
     {
         $result = [];

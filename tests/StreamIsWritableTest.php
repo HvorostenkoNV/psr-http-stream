@@ -6,78 +6,59 @@ namespace HNV\Http\StreamTests;
 
 use HNV\Http\Helper\Collection\Resource\AccessModeType;
 use HNV\Http\Stream\Stream;
+use PHPUnit\Framework\Attributes;
 
 /**
- * PSR-7 StreamInterface implementation test.
- *
- * Testing stream writable state info providing.
- *
  * @internal
- * @covers Stream
- * @small
  */
-class StreamIsWritableTest extends AbstractStreamTest
+#[Attributes\CoversClass(Stream::class)]
+#[Attributes\Small]
+class StreamIsWritableTest extends AbstractStreamTestCase
 {
     /**
-     * @covers          Stream::isWritable
-     * @dataProvider    dataProviderResourcesWithWritableState
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testIsWritable($resource, bool $stateExpected): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithWritableState')]
+    public function isWritableState($resource, bool $stateExpected): void
     {
         $stateCaught = (new Stream($resource))->isWritable();
 
-        static::assertSame(
-            $stateExpected,
-            $stateCaught,
-            "Action \"Stream->isWritable\" returned unexpected result.\n".
-            "Expected result is \"{$stateExpected}\".\n".
-            "Caught result is \"{$stateCaught}\"."
-        );
+        static::assertSame($stateExpected, $stateCaught);
     }
 
     /**
-     * @covers          Stream::isWritable
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testIsWritableInClosedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function isWritableOnClosedStream($resource): void
     {
         $stream = new Stream($resource);
         $stream->close();
 
         static::assertFalse(
             $stream->isWritable(),
-            "Action \"Stream->close->isWritable\" returned unexpected result.\n".
-            "Expected result is \"false\".\n".
-            'Caught result is "NOT false".'
+            'Expects closed stream is not writable'
         );
     }
 
     /**
-     * @covers          Stream::isWritable
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testIsWritableInDetachedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function isWritableOnDetachedStream($resource): void
     {
         $stream = new Stream($resource);
         $stream->detach();
 
         static::assertFalse(
             $stream->isWritable(),
-            "Action \"Stream->detach->isWritable\" returned unexpected result.\n".
-            "Expected result is \"false\".\n".
-            'Caught result is "NOT false".'
+            'Expects detached stream is not writable'
         );
     }
 
-    /**
-     * Data provider: resources with their writable state.
-     */
     public function dataProviderResourcesWithWritableState(): array
     {
         $result = [];

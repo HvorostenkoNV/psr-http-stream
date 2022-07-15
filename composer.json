@@ -18,7 +18,28 @@
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "dev-master",
-    "phpunit/phpunit": "9.5.*"
+
+    "phpunit/php-code-coverage": "dev-main",
+    "phpunit/php-file-iterator": "dev-main",
+    "phpunit/php-text-template": "dev-main",
+    "phpunit/php-invoker": "dev-main",
+    "phpunit/php-timer": "dev-main",
+    "sebastian/cli-parser": "dev-main",
+    "sebastian/code-unit": "dev-main",
+    "sebastian/comparator": "dev-main",
+    "sebastian/diff": "dev-main",
+    "sebastian/environment": "dev-main",
+    "sebastian/exporter": "dev-main",
+    "sebastian/recursion-context": "dev-main",
+    "sebastian/code-unit-reverse-lookup": "dev-main",
+    "sebastian/complexity": "dev-main",
+    "sebastian/lines-of-code": "dev-main",
+    "sebastian/version": "dev-main",
+    "sebastian/global-state": "dev-main",
+    "sebastian/object-reflector": "dev-main",
+    "sebastian/object-enumerator": "dev-main",
+    "sebastian/type": "dev-main",
+    "phpunit/phpunit": "dev-main"
   },
   "autoload": {
     "psr-4": {

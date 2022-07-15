@@ -18,14 +18,8 @@ use RuntimeException;
 use function array_map;
 use function in_array;
 
-/**
- * PSR-7 StreamInterface abstract implementation.
- */
 abstract class AbstractStream implements StreamInterface
 {
-    /**
-     * Destructor.
-     */
     public function __destruct()
     {
         $this->close();
@@ -85,9 +79,6 @@ abstract class AbstractStream implements StreamInterface
         return $this->checkAccessModeIs(AccessModeType::WRITABLE);
     }
 
-    /**
-     * Check stream access mode belongs to group.
-     */
     private function checkAccessModeIs(AccessModeType $modeType): bool
     {
         try {

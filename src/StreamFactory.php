@@ -23,9 +23,6 @@ use function file_exists;
 use function fopen;
 use function strlen;
 
-/**
- * PSR-7 StreamFactoryInterface implementation.
- */
 class StreamFactory implements StreamFactoryInterface
 {
     /**

@@ -17,8 +17,9 @@ use HNV\Http\Helper\Normalizer\{
     Resource\AccessMode as ResourceAccessModeNormalizer,
 };
 use HNV\Http\Stream\StreamFactory;
-use HNV\Http\StreamTests\AbstractStreamTest;
+use HNV\Http\StreamTests\AbstractStreamTestCase;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes;
 use RuntimeException;
 
 use function array_map;
@@ -28,21 +29,15 @@ use function in_array;
 use function range;
 
 /**
- * PSR-7 StreamFactoryInterface implementation test.
- *
- * Testing building stream from file behavior.
- *
  * @internal
- * @covers StreamFactory
- * @small
  */
-class StreamFactoryFromFileTest extends AbstractStreamTest
+#[Attributes\CoversClass(StreamFactory::class)]
+#[Attributes\Small]
+class StreamFactoryFromFileTest extends AbstractStreamTestCase
 {
-    /**
-     * @covers          StreamFactory::createStreamFromFile
-     * @dataProvider    dataProviderFilesWithFullParameters
-     */
-    public function testCreating(
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderFilesWithFullParameters')]
+    public function create(
         string $filename,
         string $mode,
         string $content,
@@ -53,86 +48,47 @@ class StreamFactoryFromFileTest extends AbstractStreamTest
         static::assertSame(
             0,
             $stream->tell(),
-            "Action \"StreamFactory->createStreamFromFile->tell\" returned unexpected result.\n".
-            "Expected result is \"0\".\n".
-            'Caught result is "NOT 0".'
+            'Expects built stream is rewound'
         );
         static::assertFalse(
             $stream->eof(),
-            "Action \"StreamFactory->createStreamFromFile->eof\" returned unexpected result.\n".
-            "Expected result is \"false\".\n".
-            'Caught result is "NOT false".'
+            'Expects built stream is rewound'
         );
         static::assertTrue(
             $stream->isSeekable(),
-            "Action \"StreamFactory->createStreamFromFile->isSeekable\" returned unexpected result.\n".
-            "Expected result is \"true\".\n".
-            'Caught result is "NOT true".'
+            'Expects built stream is seekable'
         );
         static::assertTrue(
             $stream->isReadable(),
-            "Action \"StreamFactory->createStreamFromFile->isReadable\" returned unexpected result.\n".
-            "Expected result is \"true\".\n".
-            'Caught result is "NOT true".'
+            'Expects built stream is readable'
         );
 
-        static::assertSame(
-            $isWritable,
-            $stream->isWritable(),
-            "Action \"StreamFactory->createStreamFromFile->isWritable\" returned unexpected result.\n".
-            "Expected result is \"{$isWritable}\".\n".
-            'Caught result is "NOT the same".'
-        );
-
-        $contentCaught = $stream->getContents();
-        static::assertSame(
-            $content,
-            $contentCaught,
-            "Action \"StreamFactory->createStreamFromFile->getContents\" returned unexpected result.\n".
-            "Expected result is \"{$content}\".\n".
-            "Caught result is \"{$contentCaught}\"."
-        );
+        static::assertSame($isWritable, $stream->isWritable());
+        static::assertSame($content, $stream->getContents());
     }
 
-    /**
-     * @covers          StreamFactory::createStreamFromFile
-     * @dataProvider    dataProviderFilesValidWithOpenModeInvalid
-     */
-    public function testCreatingThrowsException1(string $filePath, string $mode): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderFilesValidWithOpenModeInvalid')]
+    public function throwsException1(string $filePath, string $mode): void
     {
         $this->expectException(InvalidArgumentException::class);
 
         (new StreamFactory())->createStreamFromFile($filePath, $mode);
 
-        static::fail(
-            "Action \"StreamFactory->createStreamFromFile\" threw no expected exception.\n".
-            "Action was called with parameters (file open mode => {$mode}).\n".
-            "Expects \"InvalidArgumentException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail("Expects exception with file open mode [{$mode}]");
     }
 
-    /**
-     * @covers          StreamFactory::createStreamFromFile
-     * @dataProvider    dataProviderFilesInvalidWithOpenModeValid
-     */
-    public function testCreatingThrowsException2(string $filename, string $mode): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderFilesInvalidWithOpenModeValid')]
+    public function throwsException2(string $filename, string $mode): void
     {
         $this->expectException(RuntimeException::class);
 
         (new StreamFactory())->createStreamFromFile($filename, $mode);
 
-        static::fail(
-            "Action \"StreamFactory->createStreamFromFile\" threw no expected exception.\n".
-            "Action was called with parameters (filePath => unreachable file).\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception with unreachable file');
     }
 
-    /**
-     * Data provider: files with full params.
-     */
     public function dataProviderFilesWithFullParameters(): array
     {
         $modeReadableOnly           = AccessMode::get(
@@ -170,9 +126,6 @@ class StreamFactoryFromFileTest extends AbstractStreamTest
         return $result;
     }
 
-    /**
-     * Data provider: files with open mode invalid values.
-     */
     public function dataProviderFilesValidWithOpenModeInvalid(): array
     {
         $invalidModes   = $this->generateInvalidModes();
@@ -186,9 +139,6 @@ class StreamFactoryFromFileTest extends AbstractStreamTest
         return $result;
     }
 
-    /**
-     * Data provider: files that can not be opened.
-     */
     public function dataProviderFilesInvalidWithOpenModeValid(): array
     {
         $result = [];

@@ -5,46 +5,39 @@ declare(strict_types=1);
 namespace HNV\Http\StreamTests;
 
 use HNV\Http\Stream\Stream;
+use PHPUnit\Framework\Attributes;
 
 use function is_resource;
 
 /**
- * PSR-7 StreamInterface implementation test.
- *
- * Testing stream closing behavior.
- *
  * @internal
- * @covers Stream
- * @small
  */
-class StreamCloseTest extends AbstractStreamTest
+#[Attributes\CoversClass(Stream::class)]
+#[Attributes\Small]
+class StreamCloseTest extends AbstractStreamTestCase
 {
     /**
-     * @covers          Stream::close
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testClose($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function close($resource): void
     {
         $stream = new Stream($resource);
         $stream->close();
 
         static::assertFalse(
             is_resource($resource),
-            "Action \"Stream->close\" showed unexpected behavior.\n".
-            "Expects underlying resource will be closed\n".
-            'Expects underlying resource is not closed'
+            'Expects [close] operation WILL close underlying resource'
         );
     }
 
     /**
-     * @covers          Stream::close
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testCloseOnDetachedResource($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function closeDetachedStream($resource): void
     {
         $stream             = new Stream($resource);
         $resourceDetached   = $stream->detach();
@@ -52,28 +45,23 @@ class StreamCloseTest extends AbstractStreamTest
 
         static::assertTrue(
             is_resource($resourceDetached),
-            "Action \"Stream->detach->close\" showed unexpected behavior.\n".
-            "Expects underlying resource will be NOT closed.\n".
-            'Expects underlying resource is closed'
+            'Expects [close] operation WILL NOT close detached resource'
         );
     }
 
     /**
-     * @covers          Stream::__destruct
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testDestructorClosesResource($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function destructorClosesResource($resource): void
     {
         $stream = new Stream($resource);
         unset($stream);
 
         static::assertFalse(
             is_resource($resource),
-            "Action \"Stream->__destruct\" showed unexpected behavior.\n".
-            "Expects underlying resource will be closed.\n".
-            'Expects underlying resource is not closed'
+            'Expects stream underlying resource WILL close on stream destroy'
         );
     }
 }

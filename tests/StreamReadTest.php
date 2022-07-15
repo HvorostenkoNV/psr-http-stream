@@ -7,6 +7,7 @@ namespace HNV\Http\StreamTests;
 use HNV\Http\Helper\Collection\Resource\AccessModeType;
 use HNV\Http\Helper\Generator\Text as TextGenerator;
 use HNV\Http\Stream\Stream;
+use PHPUnit\Framework\Attributes;
 use RuntimeException;
 
 use function fwrite;
@@ -15,62 +16,44 @@ use function strlen;
 use function substr;
 
 /**
- * PSR-7 StreamInterface implementation test.
- *
- * Testing stream reading behavior.
- *
  * @internal
- * @covers Stream
- * @small
  */
-class StreamReadTest extends AbstractStreamTest
+#[Attributes\CoversClass(Stream::class)]
+#[Attributes\Small]
+class StreamReadTest extends AbstractStreamTestCase
 {
     /**
-     * @covers          Stream::read
-     * @dataProvider    dataProviderResourcesWithReadParametersValid
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testRead($resource, int $length, string $contentExpected): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithReadParametersValid')]
+    public function read($resource, int $length, string $contentExpected): void
     {
         $contentCaught = (new Stream($resource))->read($length);
 
-        static::assertSame(
-            $contentExpected,
-            $contentCaught,
-            "Action \"Stream->read\" returned unexpected result.\n".
-            "Action was called with parameters (length => {$length}).\n".
-            "Expected result is \"{$contentExpected}\".\n".
-            "Caught result is \"{$contentCaught}\"."
-        );
+        static::assertSame($contentExpected, $contentCaught);
     }
 
     /**
-     * @covers          Stream::read
-     * @dataProvider    dataProviderResourcesWithReadParametersInvalid
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testReadThrowsException($resource, int $length): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithReadParametersInvalid')]
+    public function readThrowsException($resource, int $length): void
     {
         $this->expectException(RuntimeException::class);
 
         (new Stream($resource))->read($length);
 
-        static::fail(
-            "Action \"Stream->read\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception on reading unreadable stream');
     }
 
     /**
-     * @covers          Stream::read
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testReadInClosedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function readOnClosedStream($resource): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -78,20 +61,15 @@ class StreamReadTest extends AbstractStreamTest
         $stream->close();
         $stream->read(0);
 
-        static::fail(
-            "Action \"Stream->close->read\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception on reading closed stream');
     }
 
     /**
-     * @covers          Stream::read
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testReadInDetachedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function readOnDetachedStream($resource): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -99,16 +77,9 @@ class StreamReadTest extends AbstractStreamTest
         $stream->detach();
         $stream->read(0);
 
-        static::fail(
-            "Action \"Stream->detach->read\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception on reading detached stream');
     }
 
-    /**
-     * Data provider: resources with data to read valid value.
-     */
     public function dataProviderResourcesWithReadParametersValid(): array
     {
         $result = [];
@@ -140,9 +111,6 @@ class StreamReadTest extends AbstractStreamTest
         return $result;
     }
 
-    /**
-     * Data provider: resources with data to read invalid value.
-     */
     public function dataProviderResourcesWithReadParametersInvalid(): array
     {
         $result = [];

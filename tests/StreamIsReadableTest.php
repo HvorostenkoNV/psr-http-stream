@@ -6,78 +6,59 @@ namespace HNV\Http\StreamTests;
 
 use HNV\Http\Helper\Collection\Resource\AccessModeType;
 use HNV\Http\Stream\Stream;
+use PHPUnit\Framework\Attributes;
 
 /**
- * PSR-7 StreamInterface implementation test.
- *
- * Testing stream readable state info providing.
- *
  * @internal
- * @covers Stream
- * @small
  */
-class StreamIsReadableTest extends AbstractStreamTest
+#[Attributes\CoversClass(Stream::class)]
+#[Attributes\Small]
+class StreamIsReadableTest extends AbstractStreamTestCase
 {
     /**
-     * @covers          Stream::isReadable
-     * @dataProvider    dataProviderResourcesWithReadableState
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testIsReadable($resource, bool $stateExpected): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithReadableState')]
+    public function isReadableState($resource, bool $stateExpected): void
     {
         $stateCaught = (new Stream($resource))->isReadable();
 
-        static::assertSame(
-            $stateExpected,
-            $stateCaught,
-            "Action \"Stream->isReadable\" returned unexpected result.\n".
-            "Expected result is \"{$stateExpected}\".\n".
-            "Caught result is \"{$stateCaught}\"."
-        );
+        static::assertSame($stateExpected, $stateCaught);
     }
 
     /**
-     * @covers          Stream::isReadable
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testIsReadableInClosedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function isReadableOnClosedStream($resource): void
     {
         $stream = new Stream($resource);
         $stream->close();
 
         static::assertFalse(
             $stream->isReadable(),
-            "Action \"Stream->close->isReadable\" returned unexpected result.\n".
-            "Expected result is \"false\".\n".
-            'Caught result is "NOT false".'
+            'Expects closed stream is not readable'
         );
     }
 
     /**
-     * @covers          Stream::isReadable
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testIsReadableInDetachedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function isReadableOnDetachedStream($resource): void
     {
         $stream = new Stream($resource);
         $stream->detach();
 
         static::assertFalse(
             $stream->isReadable(),
-            "Action \"Stream->detach->isReadable\" returned unexpected result.\n".
-            "Expected result is \"false\".\n".
-            'Caught result is "NOT false".'
+            'Expects detached stream is not readable'
         );
     }
 
-    /**
-     * Data provider: resources with their readable state.
-     */
     public function dataProviderResourcesWithReadableState(): array
     {
         $result = [];

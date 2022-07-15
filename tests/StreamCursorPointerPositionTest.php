@@ -7,6 +7,7 @@ namespace HNV\Http\StreamTests;
 use HNV\Http\Helper\Collection\Resource\AccessModeType;
 use HNV\Http\Helper\Generator\Text as TextGenerator;
 use HNV\Http\Stream\Stream;
+use PHPUnit\Framework\Attributes;
 use RuntimeException;
 
 use function fseek;
@@ -14,61 +15,44 @@ use function fwrite;
 use function strlen;
 
 /**
- * PSR-7 StreamInterface implementation test.
- *
- * Testing stream current position pointer providing.
- *
  * @internal
- * @covers Stream
- * @small
  */
-class StreamCursorPointerPositionTest extends AbstractStreamTest
+#[Attributes\CoversClass(Stream::class)]
+#[Attributes\Small]
+class StreamCursorPointerPositionTest extends AbstractStreamTestCase
 {
     /**
-     * @covers          Stream::tell
-     * @dataProvider    dataProviderResourcesInValidState
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testTell($resource, int $positionExpected): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesInValidState')]
+    public function tell($resource, int $positionExpected): void
     {
         $positionCaught = (new Stream($resource))->tell();
 
-        static::assertSame(
-            $positionExpected,
-            $positionCaught,
-            "Action \"Stream->tell\" returned unexpected result.\n".
-            "Expected result is \"{$positionExpected}\".\n".
-            "Caught result is \"{$positionCaught}\"."
-        );
+        static::assertSame($positionExpected, $positionCaught);
     }
 
     /**
-     * @covers          Stream::tell
-     * @dataProvider    dataProviderResourcesInInvalidState
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testTellThrowsException($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesInInvalidState')]
+    public function tellThrowsException($resource): void
     {
         $this->expectException(RuntimeException::class);
 
         (new Stream($resource))->tell();
 
-        static::fail(
-            "Action \"Stream->tell\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception on [tell] unreachable resource');
     }
 
     /**
-     * @covers          Stream::tell
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testTellInClosedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function tellOnClosedStream($resource): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -77,20 +61,15 @@ class StreamCursorPointerPositionTest extends AbstractStreamTest
         $stream->close();
         $stream->tell();
 
-        static::fail(
-            "Action \"Stream->close->tell\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception with [tell] on closed stream');
     }
 
     /**
-     * @covers          Stream::tell
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testTellInDetachedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function tellOnDetachedStream($resource): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -99,16 +78,9 @@ class StreamCursorPointerPositionTest extends AbstractStreamTest
         $stream->detach();
         $stream->tell();
 
-        static::fail(
-            "Action \"Stream->detach->tell\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception with [tell] on detached stream');
     }
 
-    /**
-     * Data provider: resources with cursor pointer in valid positions.
-     */
     public function dataProviderResourcesInValidState(): array
     {
         $result = [];
@@ -132,9 +104,6 @@ class StreamCursorPointerPositionTest extends AbstractStreamTest
         return $result;
     }
 
-    /**
-     * Data provider: resources with cursor pointer in invalid values.
-     */
     public function dataProviderResourcesInInvalidState(): array
     {
         $result = [];

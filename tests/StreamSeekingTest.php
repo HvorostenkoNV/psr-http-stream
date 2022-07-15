@@ -7,6 +7,7 @@ namespace HNV\Http\StreamTests;
 use HNV\Http\Helper\Collection\Resource\AccessModeType;
 use HNV\Http\Helper\Generator\Text as TextGenerator;
 use HNV\Http\Stream\Stream;
+use PHPUnit\Framework\Attributes;
 use RuntimeException;
 
 use function fseek;
@@ -19,23 +20,18 @@ use const SEEK_END;
 use const SEEK_SET;
 
 /**
- * PSR-7 StreamInterface implementation test.
- *
- * Testing stream seeking behavior.
- *
  * @internal
- * @covers Stream
- * @small
  */
-class StreamSeekingTest extends AbstractStreamTest
+#[Attributes\CoversClass(Stream::class)]
+#[Attributes\Small]
+class StreamSeekingTest extends AbstractStreamTestCase
 {
     /**
-     * @covers          Stream::seek
-     * @dataProvider    dataProviderResourcesWithSeekValuesValid
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testSeek(
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithSeekValuesValid')]
+    public function seek(
         $resource,
         int $offset,
         int $whence,
@@ -45,43 +41,29 @@ class StreamSeekingTest extends AbstractStreamTest
         $stream->seek($offset, $whence);
         $positionCaught = ftell($resource);
 
-        static::assertSame(
-            $positionExpected,
-            $positionCaught,
-            "Action \"Stream->seek\" returned unexpected result.\n".
-            "Action was called with parameters (offset => {$offset}, whence => {$whence}).\n".
-            "Expected result is \"{$positionExpected}\".\n".
-            "Caught result is \"{$positionCaught}\"."
-        );
+        static::assertSame($positionExpected, $positionCaught);
     }
 
     /**
-     * @covers          Stream::seek
-     * @dataProvider    dataProviderResourcesWithSeekValuesInvalid
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testSeekThrowsException($resource, int $offset, int $whence): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithSeekValuesInvalid')]
+    public function seekThrowsException($resource, int $offset, int $whence): void
     {
         $this->expectException(RuntimeException::class);
 
         (new Stream($resource))->seek($offset, $whence);
 
-        static::fail(
-            "Action \"Stream->seek\" threw no expected exception.\n".
-            "Action was called with parameters (offset => {$offset}, whence => {$whence}).\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception on seeking with invalid parameters');
     }
 
     /**
-     * @covers          Stream::seek
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testSeekInClosedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function seekOnClosedStream($resource): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -89,20 +71,15 @@ class StreamSeekingTest extends AbstractStreamTest
         $stream->close();
         $stream->seek(0);
 
-        static::fail(
-            "Action \"Stream->close->seek\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception on seeking closed stream');
     }
 
     /**
-     * @covers          Stream::seek
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testSeekInDetachedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function seekOnDetachedStream($resource): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -110,16 +87,9 @@ class StreamSeekingTest extends AbstractStreamTest
         $stream->detach();
         $stream->seek(0);
 
-        static::fail(
-            "Action \"Stream->detach->seek\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception on seeking detached stream');
     }
 
-    /**
-     * Data provider: resources with seek valid params.
-     */
     public function dataProviderResourcesWithSeekValuesValid(): array
     {
         $result = [];
@@ -214,9 +184,6 @@ class StreamSeekingTest extends AbstractStreamTest
         return $result;
     }
 
-    /**
-     * Data provider: resources with seek invalid params.
-     */
     public function dataProviderResourcesWithSeekValuesInvalid(): array
     {
         $result = [];

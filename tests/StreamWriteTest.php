@@ -7,6 +7,7 @@ namespace HNV\Http\StreamTests;
 use HNV\Http\Helper\Collection\Resource\AccessModeType;
 use HNV\Http\Helper\Generator\Text as TextGenerator;
 use HNV\Http\Stream\Stream;
+use PHPUnit\Framework\Attributes;
 use RuntimeException;
 
 use function ftell;
@@ -16,62 +17,44 @@ use function stream_get_contents;
 use function strlen;
 
 /**
- * PSR-7 StreamInterface implementation test.
- *
- * Testing stream writing behavior.
- *
  * @internal
- * @covers Stream
- * @small
  */
-class StreamWriteTest extends AbstractStreamTest
+#[Attributes\CoversClass(Stream::class)]
+#[Attributes\Small]
+class StreamWriteTest extends AbstractStreamTestCase
 {
     /**
-     * @covers          Stream::write
-     * @dataProvider    dataProviderResourcesWithWriteParametersValid
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testWrite($resource, string $data, int $resultExpected): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithWriteParametersValid')]
+    public function write($resource, string $data, int $resultExpected): void
     {
         $resultCaught = (new Stream($resource))->write($data);
 
-        static::assertSame(
-            $resultExpected,
-            $resultCaught,
-            "Action \"Stream->write\" returned unexpected result.\n".
-            "Action was called with parameters (data => {$data}).\n".
-            "Expected result is \"{$resultExpected}\".\n".
-            "Caught result is \"{$resultCaught}\"."
-        );
+        static::assertSame($resultExpected, $resultCaught);
     }
 
     /**
-     * @covers          Stream::write
-     * @dataProvider    dataProviderResourcesWithWriteParametersInvalid
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testWriteThrowsException($resource, string $data): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithWriteParametersInvalid')]
+    public function writeThrowsException($resource, string $data): void
     {
         $this->expectException(RuntimeException::class);
 
         (new Stream($resource))->write($data);
 
-        static::fail(
-            "Action \"Stream->write\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception on writing with invalid parameters');
     }
 
     /**
-     * @covers          Stream::write
-     * @dataProvider    dataProviderResourcesWithDoubleDataToWrite
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testWriteAddData($resource, string $data1, string $data2): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithDoubleDataToWrite')]
+    public function writeAddData($resource, string $data1, string $data2): void
     {
         $stream = new Stream($resource);
 
@@ -84,20 +67,16 @@ class StreamWriteTest extends AbstractStreamTest
         static::assertSame(
             $data1.$data2,
             $contentCaught,
-            "Action \"Stream->write->write\" returned unexpected result.\n".
-            "Action was called with parameters (data => {$data1}, data => {$data2}).\n".
-            "Expected result is \"{$data1}{$data2}\".\n".
-            "Caught result is \"{$contentCaught}\"."
+            'Expects [write] WILL add content and WILL NOT rewrite exist'
         );
     }
 
     /**
-     * @covers          Stream::write
-     * @dataProvider    dataProviderResourcesWithCursorPointerParameters
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testWriteMovesCursorPosition(
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithCursorPointerParameters')]
+    public function writeMovesCursorPosition(
         $resource,
         string $data,
         int $pointerExpected
@@ -109,20 +88,16 @@ class StreamWriteTest extends AbstractStreamTest
         static::assertSame(
             $pointerExpected,
             $pointerCaught,
-            "Action \"Stream->write\" showed unexpected behavior.\n".
-            "Action was called with parameters (data => {$data}) twice.\n".
-            "Expects underlying resource cursor position is \"{$pointerExpected}\"\n".
-            "Underlying resource cursor position is \"{$pointerCaught}\""
+            'Expects [write] WILL move cursor pointer'
         );
     }
 
     /**
-     * @covers          Stream::write
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testWriteInClosedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function writeOnClosedStream($resource): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -132,20 +107,15 @@ class StreamWriteTest extends AbstractStreamTest
         $stream->close();
         $stream->write($data);
 
-        static::fail(
-            "Action \"Stream->close->write\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception during write on closed stream');
     }
 
     /**
-     * @covers          Stream::write
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testWriteInDetachedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function writeOnDetachedStream($resource): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -155,16 +125,9 @@ class StreamWriteTest extends AbstractStreamTest
         $stream->detach();
         $stream->write($data);
 
-        static::fail(
-            "Action \"Stream->detach->write\" threw no expected exception.\n".
-            "Expects \"RuntimeException\" exception.\n".
-            'Caught no exception.'
-        );
+        static::fail('Expects exception during write on detached stream');
     }
 
-    /**
-     * Data provider: resources with data to write valid parameters.
-     */
     public function dataProviderResourcesWithWriteParametersValid(): array
     {
         $result = [];
@@ -186,9 +149,6 @@ class StreamWriteTest extends AbstractStreamTest
         return $result;
     }
 
-    /**
-     * Data provider: resources with data to write invalid parameters.
-     */
     public function dataProviderResourcesWithWriteParametersInvalid(): array
     {
         $result = [];
@@ -201,9 +161,6 @@ class StreamWriteTest extends AbstractStreamTest
         return $result;
     }
 
-    /**
-     * Data provider: resources with double data to write.
-     */
     public function dataProviderResourcesWithDoubleDataToWrite(): array
     {
         $result = [];
@@ -217,9 +174,6 @@ class StreamWriteTest extends AbstractStreamTest
         return $result;
     }
 
-    /**
-     * Data provider: resources with data to write and expected cursor pointer position.
-     */
     public function dataProviderResourcesWithCursorPointerParameters(): array
     {
         $result = [];

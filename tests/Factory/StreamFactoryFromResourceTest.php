@@ -7,29 +7,25 @@ namespace HNV\Http\StreamTests\Factory;
 use HNV\Http\Helper\Collection\Resource\AccessModeType;
 use HNV\Http\Helper\Generator\Text as TextGenerator;
 use HNV\Http\Stream\StreamFactory;
-use HNV\Http\StreamTests\AbstractStreamTest;
+use HNV\Http\StreamTests\AbstractStreamTestCase;
+use PHPUnit\Framework\Attributes;
 
 use function fwrite;
 use function rewind;
 
 /**
- * PSR-7 StreamFactoryInterface implementation test.
- *
- * Testing building stream from resource behavior.
- *
  * @internal
- * @covers StreamFactory
- * @small
  */
-class StreamFactoryFromResourceTest extends AbstractStreamTest
+#[Attributes\CoversClass(StreamFactory::class)]
+#[Attributes\Small]
+class StreamFactoryFromResourceTest extends AbstractStreamTestCase
 {
     /**
-     * @covers          StreamFactory::createStreamFromResource
-     * @dataProvider    dataProviderResourcesWithValues
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testCreateStreamFromResource(
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithValues')]
+    public function create(
         $resource,
         string $content,
         bool $isWritable
@@ -39,49 +35,25 @@ class StreamFactoryFromResourceTest extends AbstractStreamTest
         static::assertSame(
             0,
             $stream->tell(),
-            "Action \"StreamFactory->createStreamFromResource->tell\" returned unexpected result.\n".
-            "Expected result is \"0\".\n".
-            'Caught result is "NOT 0".'
+            'Expects built stream is rewound'
         );
         static::assertFalse(
             $stream->eof(),
-            "Action \"StreamFactory->createStreamFromResource->eof\" returned unexpected result.\n".
-            "Expected result is \"false\".\n".
-            'Caught result is "NOT false".'
+            'Expects built stream is rewound'
         );
         static::assertTrue(
             $stream->isSeekable(),
-            "Action \"StreamFactory->createStreamFromResource->isSeekable\" returned unexpected result.\n".
-            "Expected result is \"true\".\n".
-            'Caught result is "NOT true".'
+            'Expects built stream is seekable'
         );
         static::assertTrue(
             $stream->isReadable(),
-            "Action \"StreamFactory->createStreamFromResource->isReadable\" returned unexpected result.\n".
-            "Expected result is \"true\".\n".
-            'Caught result is "NOT true".'
-        );
-        static::assertSame(
-            $isWritable,
-            $stream->isWritable(),
-            "Action \"StreamFactory->createStreamFromResource->isWritable\" returned unexpected result.\n".
-            "Expected result is \"true\".\n".
-            'Caught result is "NOT true".'
+            'Expects built stream is readable'
         );
 
-        $contentCaught = $stream->getContents();
-        static::assertSame(
-            $content,
-            $contentCaught,
-            "Action \"StreamFactory->createStreamFromResource->getContents\" returned unexpected result.\n".
-            "Expected result is \"{$content}\".\n".
-            "Caught result is \"{$contentCaught}\"."
-        );
+        static::assertSame($isWritable, $stream->isWritable());
+        static::assertSame($content, $stream->getContents());
     }
 
-    /**
-     * Data provider: resources with full params.
-     */
     public function dataProviderResourcesWithValues(): array
     {
         $result = [];

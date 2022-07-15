@@ -7,6 +7,7 @@ namespace HNV\Http\StreamTests;
 use HNV\Http\Helper\Collection\Resource\AccessModeType;
 use HNV\Http\Helper\Generator\Text as TextGenerator;
 use HNV\Http\Stream\Stream;
+use PHPUnit\Framework\Attributes;
 
 use function array_keys;
 use function fseek;
@@ -14,18 +15,13 @@ use function fwrite;
 use function rewind;
 use function stream_get_meta_data;
 use function strlen;
-use function var_export;
 
 /**
- * PSR-7 StreamInterface implementation test.
- *
- * Testing stream metadata info work with.
- *
  * @internal
- * @covers Stream
- * @small
  */
-class StreamGetMetadataTest extends AbstractStreamTest
+#[Attributes\CoversClass(Stream::class)]
+#[Attributes\Small]
+class StreamGetMetadataTest extends AbstractStreamTestCase
 {
     private const METADATA_DEFAULT_VALUES = [
         'timed_out'     => true,
@@ -41,139 +37,99 @@ class StreamGetMetadataTest extends AbstractStreamTest
     ];
 
     /**
-     * @covers          Stream::getMetadata
-     * @dataProvider    dataProviderResourcesWithMetadata
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testGetMetadata($resource, array $metadataExpected): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithMetadata')]
+    public function getMetadata($resource, array $metadataExpected): void
     {
-        $metadataCaught             = (new Stream($resource))->getMetadata();
-        $metadataExpectedPrintable  = var_export($metadataExpected, true);
-        $metadataCaughtPrintable    = var_export($metadataCaught, true);
+        $metadataCaught = (new Stream($resource))->getMetadata();
 
-        static::assertSame(
-            $metadataExpected,
-            $metadataCaught,
-            "Action \"Stream->getMetadata\" returned unexpected result.\n".
-            "Expected result is \"{$metadataExpectedPrintable}\".\n".
-            "Caught result is \"{$metadataCaughtPrintable}\"."
-        );
+        static::assertSame($metadataExpected, $metadataCaught);
     }
 
     /**
-     * @covers          Stream::getMetadata
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testGetMetadataInClosedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function getMetadataOnClosedStream($resource): void
     {
         $stream = new Stream($resource);
         $stream->close();
 
         static::assertNull(
             $stream->getMetadata(),
-            "Action \"Stream->close->getMetadata\" returned unexpected result.\n".
-            "Expected result is \"null\".\n".
-            'Caught result is "NOT null".'
+            'Expects null on getting metadata of closed stream'
         );
     }
 
     /**
-     * @covers          Stream::getMetadata
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testGetMetadataInDetachedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function getMetadataOnDetachedStream($resource): void
     {
         $stream = new Stream($resource);
         $stream->detach();
 
         static::assertNull(
             $stream->getMetadata(),
-            "Action \"Stream->detach->getMetadata\" returned unexpected result.\n".
-            "Expected result is \"null\".\n".
-            'Caught result is "NOT null".'
+            'Expects null on getting metadata of detached stream'
         );
     }
 
     /**
-     * @covers          Stream::getMetadata
-     * @dataProvider    dataProviderResourcesWithMetadataByKey
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testGetMetadataByKey($resource, string $key, mixed $metadataExpected): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResourcesWithMetadataByKey')]
+    public function getMetadataByKey($resource, string $key, mixed $metadataExpected): void
     {
-        $metadataCaught             = (new Stream($resource))->getMetadata($key);
-        $metadataExpectedPrintable  = var_export($metadataExpected, true);
-        $metadataCaughtPrintable    = var_export($metadataCaught, true);
+        $metadataCaught = (new Stream($resource))->getMetadata($key);
 
-        static::assertSame(
-            $metadataExpected,
-            $metadataCaught,
-            "Action \"Stream->getMetadata\" returned unexpected result.\n".
-            "Action was called with parameters (key => {$key}).\n".
-            "Expected result is \"{$metadataExpectedPrintable}\".\n".
-            "Caught result is \"{$metadataCaughtPrintable}\"."
-        );
+        static::assertSame($metadataExpected, $metadataCaught);
     }
 
     /**
-     * @covers          Stream::getMetadata
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testGetMetadataByKeyInClosedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function getMetadataByKeyOnClosedStream($resource): void
     {
         $stream = new Stream($resource);
         $stream->close();
 
         foreach (self::METADATA_DEFAULT_VALUES as $key => $valueExpected) {
-            $valueCaught = $stream->getMetadata($key);
-
             static::assertSame(
                 $valueExpected,
-                $valueCaught,
-                "Action \"Stream->close->getMetadata\" returned unexpected result.\n".
-                "Action was called with parameters (key => {$key}).\n".
-                "Expected result is \"{$valueExpected}\".\n".
-                "Caught result is \"{$valueCaught}\"."
+                $stream->getMetadata($key),
+                'Expects default value on getting metadata of closed stream'
             );
         }
     }
 
     /**
-     * @covers          Stream::getMetadata
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource resource
+     * @param resource $resource
      */
-    public function testGetMetadataByKeyInDetachedState($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function getMetadataByKeyOnDetachedStream($resource): void
     {
         $stream = new Stream($resource);
         $stream->detach();
 
-        foreach (self::METADATA_DEFAULT_VALUES as $key => $metadataExpected) {
-            $metadataCaught = $stream->getMetadata($key);
-
+        foreach (self::METADATA_DEFAULT_VALUES as $key => $valueExpected) {
             static::assertSame(
-                $metadataExpected,
-                $metadataCaught,
-                "Action \"Stream->detach->getMetadata\" returned unexpected result.\n".
-                "Action was called with parameters (key => {$key}).\n".
-                "Expected result is \"{$metadataExpected}\".\n".
-                "Caught result is \"{$metadataCaught}\"."
+                $valueExpected,
+                $stream->getMetadata($key),
+                'Expects default value on getting metadata of detached stream'
             );
         }
     }
 
-    /**
-     * Data provider: resources with metadata.
-     */
     public function dataProviderResourcesWithMetadata(): array
     {
         $result = [];
@@ -202,9 +158,6 @@ class StreamGetMetadataTest extends AbstractStreamTest
         return $result;
     }
 
-    /**
-     * Data provider: resources with metadata by key.
-     */
     public function dataProviderResourcesWithMetadataByKey(): array
     {
         $availableKeys      = array_keys(self::METADATA_DEFAULT_VALUES);

@@ -5,72 +5,56 @@ declare(strict_types=1);
 namespace HNV\Http\StreamTests;
 
 use HNV\Http\Stream\Stream;
+use PHPUnit\Framework\Attributes;
 
 /**
- * PSR-7 StreamInterface implementation test.
- *
- * Testing stream detaching behavior.
- *
  * @internal
- * @covers Stream
- * @small
  */
-class StreamDetachTest extends AbstractStreamTest
+#[Attributes\CoversClass(Stream::class)]
+#[Attributes\Small]
+class StreamDetachTest extends AbstractStreamTestCase
 {
     /**
-     * @covers          Stream::detach
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testDetach($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function detach($resource): void
     {
         $stream = new Stream($resource);
 
-        static::assertSame(
-            $resource,
-            $stream->detach(),
-            "Action \"Stream->detach\" returned unexpected result.\n".
-            "Expected result is \"THE SAME resource\".\n".
-            'Caught result is "NOT THE SAME resource".'
-        );
+        static::assertSame($resource, $stream->detach());
     }
 
     /**
-     * @covers          Stream::detach
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testDetachOnClosedStream($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function detachClosedStream($resource): void
     {
         $stream = new Stream($resource);
         $stream->close();
 
         static::assertNull(
             $stream->detach(),
-            "Action \"Stream->close->detach\" returned unexpected result.\n".
-            "Expected result is \"null\".\n".
-            'Caught result is "NOT null".'
+            'Expects null on closed stream'
         );
     }
 
     /**
-     * @covers          Stream::detach
-     * @dataProvider    dataProviderResources
-     *
-     * @param resource $resource recourse
+     * @param resource $resource
      */
-    public function testDetachOnDetachedStream($resource): void
+    #[Attributes\Test]
+    #[Attributes\DataProvider('dataProviderResources')]
+    public function detachDetachedStream($resource): void
     {
         $stream = new Stream($resource);
         $stream->detach();
 
         static::assertNull(
             $stream->detach(),
-            "Action \"Stream->detach->detach\" returned unexpected result.\n".
-            "Expected result is \"null\".\n".
-            'Caught result is "NOT null".'
+            'Expects null on detached stream'
         );
     }
 }
