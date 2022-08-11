@@ -107,44 +107,42 @@ class StreamGetContentTest extends AbstractStreamTestCase
         static::fail('Expects exception on reading detached stream');
     }
 
-    public function dataProviderResourcesWithReadParametersValid(): array
+    public function dataProviderResourcesWithReadParametersValid(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::READABLE) as $resource) {
-            $result[] = [$resource, '', ''];
+            yield [$resource, '', ''];
         }
+
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
+            $content = (new TextGenerator())->generate();
             fwrite($resource, $content);
             rewind($resource);
-            $result[]   = [$resource, $content, $content];
+
+            yield [$resource, $content, $content];
         }
+
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
+            $content = (new TextGenerator())->generate();
             fwrite($resource, $content);
-            $result[]   = [$resource, $content, ''];
+
+            yield [$resource, $content, ''];
         }
+
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
             $content            = (new TextGenerator())->generate();
             $seekValue          = (int) (strlen($content) / 2);
             $contentExpected    = substr($content, $seekValue);
             fwrite($resource, $content);
             fseek($resource, $seekValue);
-            $result[]           = [$resource, $content, $contentExpected];
-        }
 
-        return $result;
+            yield [$resource, $content, $contentExpected];
+        }
     }
 
-    public function dataProviderResourcesWithReadParametersInvalid(): array
+    public function dataProviderResourcesWithReadParametersInvalid(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::WRITABLE_ONLY) as $resource) {
-            $result[] = [$resource];
+            yield [$resource];
         }
-
-        return $result;
     }
 }

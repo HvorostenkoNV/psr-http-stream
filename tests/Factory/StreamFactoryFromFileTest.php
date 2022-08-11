@@ -89,7 +89,7 @@ class StreamFactoryFromFileTest extends AbstractStreamTestCase
         static::fail('Expects exception with unreachable file');
     }
 
-    public function dataProviderFilesWithFullParameters(): array
+    public function dataProviderFilesWithFullParameters(): iterable
     {
         $modeReadableOnly           = AccessMode::get(
             AccessModeType::READABLE_ONLY,
@@ -100,17 +100,18 @@ class StreamFactoryFromFileTest extends AbstractStreamTestCase
             AccessModeType::EXPECT_NO_FILE
         );
         $modeRewrite                = AccessMode::get(AccessModeType::FORCE_CLEAR);
-        $result                     = [];
 
         foreach ($modeReadableOnly as $mode) {
-            $filePath   = (new FileGenerator())->generate();
-            $result[]   = [$filePath, $mode->value, '', false];
+            $filePath = (new FileGenerator())->generate();
+
+            yield [$filePath, $mode->value, '', false];
         }
         foreach ($modeReadableOnly as $mode) {
             $filePath   = (new FileGenerator())->generate();
             $content    = (new TextGenerator())->generate();
             file_put_contents($filePath, $content);
-            $result[]   = [$filePath, $mode->value, $content, false];
+
+            yield [$filePath, $mode->value, $content, false];
         }
         foreach ($modeReadableAndWritable as $mode) {
             if (in_array($mode, $modeRewrite, true)) {
@@ -120,56 +121,45 @@ class StreamFactoryFromFileTest extends AbstractStreamTestCase
             $filePath   = (new FileGenerator())->generate();
             $content    = (new TextGenerator())->generate();
             file_put_contents($filePath, $content);
-            $result[]   = [$filePath, $mode->value, $content, true];
-        }
 
-        return $result;
+            yield [$filePath, $mode->value, $content, true];
+        }
     }
 
-    public function dataProviderFilesValidWithOpenModeInvalid(): array
+    public function dataProviderFilesValidWithOpenModeInvalid(): iterable
     {
-        $invalidModes   = $this->generateInvalidModes();
-        $result         = [];
+        foreach ($this->generateInvalidModes() as $mode) {
+            $filePath = (new FileGenerator())->generate();
 
-        foreach ($invalidModes as $mode) {
-            $filePath   = (new FileGenerator())->generate();
-            $result[]   = [$filePath, $mode];
+            yield [$filePath, $mode];
         }
-
-        return $result;
     }
 
-    public function dataProviderFilesInvalidWithOpenModeValid(): array
+    public function dataProviderFilesInvalidWithOpenModeValid(): iterable
     {
-        $result = [];
-
         for ($iterator = 1; $iterator <= 5; $iterator++) {
-            $result[] = ["incorrectFilePath-{$iterator}", AccessMode::READ_ONLY_POINTER_START->value];
+            yield ["incorrectFilePath-{$iterator}", AccessMode::READ_ONLY_POINTER_START->value];
         }
-
-        return $result;
     }
 
     /**
      * @return string[]
      */
-    private function generateInvalidModes(): array
+    private function generateInvalidModes(): iterable
     {
-        $result             = [];
         $rangeOfNumbers     = range(0, 9);
         $rangeOfCharacters  = array_map(fn ($number) => chr($number), range(65, 112));
 
         foreach ($rangeOfNumbers as $number) {
-            $result[] = "{$number}";
+            yield "{$number}";
         }
+
         foreach ($rangeOfCharacters as $character) {
             try {
                 ResourceAccessModeNormalizer::normalize($character);
             } catch (NormalizingException) {
-                $result[] = $character;
+                yield $character;
             }
         }
-
-        return $result;
     }
 }

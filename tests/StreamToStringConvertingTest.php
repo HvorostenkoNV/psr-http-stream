@@ -69,33 +69,35 @@ class StreamToStringConvertingTest extends AbstractStreamTestCase
         );
     }
 
-    public function dataProviderResourcesWithContent(): array
+    public function dataProviderResourcesWithContent(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::ALL) as $resource) {
-            $result[] = [$resource, '', ''];
+            yield [$resource, '', ''];
         }
+
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
+            $content = (new TextGenerator())->generate();
             fwrite($resource, $content);
-            $result[]   = [$resource, $content, ''];
+
+            yield [$resource, $content, ''];
         }
+
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
+            $content = (new TextGenerator())->generate();
             fwrite($resource, $content);
             rewind($resource);
-            $result[]   = [$resource, $content, $content];
+
+            yield [$resource, $content, $content];
         }
+
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
             $content            = (new TextGenerator())->generate();
             $seekValue          = (int) (strlen($content) / 2);
             $contentExpected    = substr($content, $seekValue);
             fwrite($resource, $content);
             fseek($resource, $seekValue);
-            $result[]           = [$resource, $content, $contentExpected];
-        }
 
-        return $result;
+            yield [$resource, $content, $contentExpected];
+        }
     }
 }

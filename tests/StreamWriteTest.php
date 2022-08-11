@@ -128,70 +128,61 @@ class StreamWriteTest extends AbstractStreamTestCase
         static::fail('Expects exception during write on detached stream');
     }
 
-    public function dataProviderResourcesWithWriteParametersValid(): array
+    public function dataProviderResourcesWithWriteParametersValid(): iterable
     {
-        $result = [];
+        foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
+            yield [$resource, '', 0];
+        }
 
         foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
-            $result[]   = [$resource, '', 0];
+            $content = (new TextGenerator())->generate();
+            yield [$resource, $content, strlen($content)];
         }
-        foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
-            $result[]   = [$resource, $content, strlen($content)];
-        }
+
         foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
             $content1   = (new TextGenerator())->generate();
             $content2   = (new TextGenerator())->generate();
             fwrite($resource, $content1);
-            $result[]   = [$resource, $content2, strlen($content2)];
-        }
 
-        return $result;
+            yield [$resource, $content2, strlen($content2)];
+        }
     }
 
-    public function dataProviderResourcesWithWriteParametersInvalid(): array
+    public function dataProviderResourcesWithWriteParametersInvalid(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::READABLE_ONLY) as $resource) {
-            $content    = (new TextGenerator())->generate();
-            $result[]   = [$resource, $content];
+            $content = (new TextGenerator())->generate();
+            yield [$resource, $content];
         }
-
-        return $result;
     }
 
-    public function dataProviderResourcesWithDoubleDataToWrite(): array
+    public function dataProviderResourcesWithDoubleDataToWrite(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
             $content1   = (new TextGenerator())->generate();
             $content2   = (new TextGenerator())->generate();
-            $result[]   = [$resource, $content1, $content2];
-        }
 
-        return $result;
+            yield [$resource, $content1, $content2];
+        }
     }
 
-    public function dataProviderResourcesWithCursorPointerParameters(): array
+    public function dataProviderResourcesWithCursorPointerParameters(): iterable
     {
-        $result = [];
+        foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
+            yield [$resource, '', 0];
+        }
 
         foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
-            $result[]   = [$resource, '', 0];
+            $content = (new TextGenerator())->generate();
+            yield [$resource, $content, strlen($content)];
         }
-        foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
-            $result[]   = [$resource, $content, strlen($content)];
-        }
+
         foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
             $content1   = (new TextGenerator())->generate();
             $content2   = (new TextGenerator())->generate();
             fwrite($resource, $content1);
-            $result[]   = [$resource, $content2, strlen($content1.$content2)];
-        }
 
-        return $result;
+            yield [$resource, $content2, strlen($content1.$content2)];
+        }
     }
 }

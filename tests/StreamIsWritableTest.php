@@ -59,20 +59,18 @@ class StreamIsWritableTest extends AbstractStreamTestCase
         );
     }
 
-    public function dataProviderResourcesWithWritableState(): array
+    public function dataProviderResourcesWithWritableState(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::READABLE_ONLY) as $resource) {
-            $result[] = [$resource, false];
-        }
-        foreach ($this->generateResources(AccessModeType::WRITABLE_ONLY) as $resource) {
-            $result[] = [$resource, true];
-        }
-        foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
-            $result[] = [$resource, true];
+            yield [$resource, false];
         }
 
-        return $result;
+        foreach ($this->generateResources(AccessModeType::WRITABLE_ONLY) as $resource) {
+            yield [$resource, true];
+        }
+
+        foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
+            yield [$resource, true];
+        }
     }
 }

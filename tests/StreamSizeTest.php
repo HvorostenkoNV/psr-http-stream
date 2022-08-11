@@ -67,36 +67,33 @@ class StreamSizeTest extends AbstractStreamTestCase
         );
     }
 
-    public function dataProviderResourcesWithSizeValue(): array
+    public function dataProviderResourcesWithSizeValue(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::READABLE_ONLY) as $resource) {
-            $result[] = [$resource, 0];
-        }
-        foreach ($this->generateResources(AccessModeType::WRITABLE_ONLY) as $resource) {
-            $content    = (new TextGenerator())->generate();
-            fwrite($resource, $content);
-            $result[]   = [$resource, strlen($content)];
-        }
-        foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
-            fwrite($resource, $content);
-            $result[]   = [$resource, strlen($content)];
+            yield [$resource, 0];
         }
 
-        return $result;
+        foreach ($this->generateResources(AccessModeType::WRITABLE_ONLY) as $resource) {
+            $content = (new TextGenerator())->generate();
+            fwrite($resource, $content);
+
+            yield [$resource, strlen($content)];
+        }
+
+        foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
+            $content = (new TextGenerator())->generate();
+            fwrite($resource, $content);
+
+            yield [$resource, strlen($content)];
+        }
     }
 
-    public function dataProviderResourcesWithDataToWrite(): array
+    public function dataProviderResourcesWithDataToWrite(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
-            $result[]   = [$resource, $content];
-        }
+            $content = (new TextGenerator())->generate();
 
-        return $result;
+            yield [$resource, $content];
+        }
     }
 }

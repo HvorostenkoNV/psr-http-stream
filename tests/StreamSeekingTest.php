@@ -90,41 +90,44 @@ class StreamSeekingTest extends AbstractStreamTestCase
         static::fail('Expects exception on seeking detached stream');
     }
 
-    public function dataProviderResourcesWithSeekValuesValid(): array
+    public function dataProviderResourcesWithSeekValuesValid(): iterable
     {
-        $result = [];
+        foreach ($this->generateResources(AccessModeType::ALL) as $resource) {
+            yield [
+                $resource,
+                0,
+                SEEK_SET,
+                0,
+            ];
+        }
 
         foreach ($this->generateResources(AccessModeType::ALL) as $resource) {
-            $result[] = [
-                $resource,
-                0,
-                SEEK_SET,
-                0,
-            ];
-        }
-        foreach ($this->generateResources(AccessModeType::ALL) as $resource) {
-            $result[] = [
+            yield [
                 $resource,
                 1,
                 SEEK_SET,
                 1,
             ];
         }
+
         foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
             $content    = (new TextGenerator())->generate();
             $seekValue  = (int) (strlen($content) / 2);
             fwrite($resource, $content);
-            $result[]   = [
+
+            yield [
                 $resource,
                 $seekValue,
                 SEEK_SET,
                 $seekValue,
             ];
         }
+
         foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
+            $content = (new TextGenerator())->generate();
             fwrite($resource, $content);
-            $result[]   = [
+
+            yield [
                 $resource,
                 strlen($content) + 1,
                 SEEK_SET,
@@ -139,18 +142,21 @@ class StreamSeekingTest extends AbstractStreamTestCase
             $seekValueTotal     = $seekValueFirst + $seekValueSecond;
             fwrite($resource, $content);
             fseek($resource, $seekValueFirst);
-            $result[]           = [
+
+            yield [
                 $resource,
                 $seekValueSecond,
                 SEEK_CUR,
                 $seekValueTotal,
             ];
         }
+
         foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
+            $content = (new TextGenerator())->generate();
             fwrite($resource, $content);
             fseek($resource, strlen($content));
-            $result[]   = [
+
+            yield [
                 $resource,
                 1,
                 SEEK_CUR,
@@ -159,58 +165,44 @@ class StreamSeekingTest extends AbstractStreamTestCase
         }
 
         foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
-            $content            = (new TextGenerator())->generate();
-            $seekValue          = -1;
-            $seekValueTotal     = strlen($content) + $seekValue;
+            $content        = (new TextGenerator())->generate();
+            $seekValue      = -1;
+            $seekValueTotal = strlen($content) + $seekValue;
             fwrite($resource, $content);
-            $result[]           = [
+
+            yield [
                 $resource,
                 $seekValue,
                 SEEK_END,
                 $seekValueTotal,
             ];
         }
+
         foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
+            $content = (new TextGenerator())->generate();
             fwrite($resource, $content);
-            $result[]   = [
+
+            yield [
                 $resource,
                 1,
                 SEEK_END,
                 strlen($content) + 1,
             ];
         }
-
-        return $result;
     }
 
-    public function dataProviderResourcesWithSeekValuesInvalid(): array
+    public function dataProviderResourcesWithSeekValuesInvalid(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::ALL) as $resource) {
-            $result[] = [
-                $resource,
-                -1,
-                SEEK_SET,
-            ];
-        }
-        foreach ($this->generateResources(AccessModeType::ALL) as $resource) {
-            $result[] = [
-                $resource,
-                0,
-                SEEK_SET - 1,
-            ];
+            yield [$resource, -1, SEEK_SET];
         }
 
         foreach ($this->generateResources(AccessModeType::ALL) as $resource) {
-            $result[] = [
-                $resource,
-                0,
-                SEEK_END + 1,
-            ];
+            yield [$resource, 0, SEEK_SET - 1];
         }
 
-        return $result;
+        foreach ($this->generateResources(AccessModeType::ALL) as $resource) {
+            yield [$resource, 0, SEEK_END + 1];
+        }
     }
 }

@@ -80,48 +80,46 @@ class StreamReadTest extends AbstractStreamTestCase
         static::fail('Expects exception on reading detached stream');
     }
 
-    public function dataProviderResourcesWithReadParametersValid(): array
+    public function dataProviderResourcesWithReadParametersValid(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::READABLE) as $resource) {
-            $result[] = [$resource, 0, ''];
+            yield [$resource, 0, ''];
         }
+
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
+            $content = (new TextGenerator())->generate();
             fwrite($resource, $content);
             rewind($resource);
-            $result[]   = [$resource, strlen($content), $content];
+
+            yield [$resource, strlen($content), $content];
         }
+
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
             $content            = (new TextGenerator())->generate();
             $readLength         = (int) (strlen($content) / 2);
             $expectedContent    = substr($content, 0, $readLength);
             fwrite($resource, $content);
             rewind($resource);
-            $result[]           = [$resource, $readLength, $expectedContent];
+
+            yield [$resource, $readLength, $expectedContent];
         }
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
+            $content = (new TextGenerator())->generate();
             fwrite($resource, $content);
             $this->reachResourceEnd($resource);
-            $result[]   = [$resource, strlen($content), ''];
-        }
 
-        return $result;
+            yield [$resource, strlen($content), ''];
+        }
     }
 
-    public function dataProviderResourcesWithReadParametersInvalid(): array
+    public function dataProviderResourcesWithReadParametersInvalid(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::WRITABLE_ONLY) as $resource) {
-            $result[] = [$resource, 1];
-        }
-        foreach ($this->generateResources(AccessModeType::READABLE_ONLY) as $resource) {
-            $result[] = [$resource, -1];
+            yield [$resource, 1];
         }
 
-        return $result;
+        foreach ($this->generateResources(AccessModeType::READABLE_ONLY) as $resource) {
+            yield [$resource, -1];
+        }
     }
 }

@@ -47,15 +47,12 @@ class StreamFactoryFromStringTest extends AbstractStreamTestCase
         static::assertSame($content, $stream->getContents());
     }
 
-    public function dataProviderValues(): array
+    public function dataProviderValues(): iterable
     {
-        $result = [];
-
         for ($iterator = 10; $iterator >= 0; $iterator--) {
-            $content    = (new TextGenerator())->generate();
-            $result[]   = [$content];
-        }
+            $content = (new TextGenerator())->generate();
 
-        return $result;
+            yield [$content];
+        }
     }
 }

@@ -54,20 +54,18 @@ class StreamFactoryFromResourceTest extends AbstractStreamTestCase
         static::assertSame($content, $stream->getContents());
     }
 
-    public function dataProviderResourcesWithValues(): array
+    public function dataProviderResourcesWithValues(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::READABLE_ONLY) as $resource) {
-            $result[]   = [$resource, '', false];
+            yield [$resource, '', false];
         }
+
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
+            $content = (new TextGenerator())->generate();
             fwrite($resource, $content);
             rewind($resource);
-            $result[]   = [$resource, $content, true];
-        }
 
-        return $result;
+            yield [$resource, $content, true];
+        }
     }
 }

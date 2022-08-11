@@ -19,31 +19,25 @@ use function fgetc;
 
 abstract class AbstractStreamTestCase extends TestCase
 {
-    public function dataProviderResources(): array
+    public function dataProviderResources(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::ALL) as $resource) {
-            $result[] = [$resource];
+            yield [$resource];
         }
-
-        return $result;
     }
 
     /**
      * @return resource[]
      */
-    protected function generateResources(AccessModeType $modesType): array
+    protected function generateResources(AccessModeType $modesType): iterable
     {
-        $accessModes    = AccessMode::get($modesType, AccessModeType::EXPECT_NO_FILE);
-        $result         = [];
+        $accessModes = AccessMode::get($modesType, AccessModeType::EXPECT_NO_FILE);
 
         foreach ($accessModes as $mode) {
-            $file       = (new FileGenerator())->generate();
-            $result[]   = (new ResourceGenerator($file, $mode))->generate();
-        }
+            $file = (new FileGenerator())->generate();
 
-        return $result;
+            yield (new ResourceGenerator($file, $mode))->generate();
+        }
     }
 
     /**

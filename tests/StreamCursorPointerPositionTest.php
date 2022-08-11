@@ -81,37 +81,33 @@ class StreamCursorPointerPositionTest extends AbstractStreamTestCase
         static::fail('Expects exception with [tell] on detached stream');
     }
 
-    public function dataProviderResourcesInValidState(): array
+    public function dataProviderResourcesInValidState(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::READABLE) as $resource) {
-            $result[]   = [$resource, 0];
+            yield [$resource, 0];
         }
+
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
+            $content = (new TextGenerator())->generate();
             fwrite($resource, $content);
-            $result[]   = [$resource, strlen($content)];
+
+            yield [$resource, strlen($content)];
         }
+
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
             $content    = (new TextGenerator())->generate();
             $seekValue  = (int) (strlen($content) / 2);
             fwrite($resource, $content);
             fseek($resource, $seekValue);
-            $result[]   = [$resource, $seekValue];
-        }
 
-        return $result;
+            yield [$resource, $seekValue];
+        }
     }
 
-    public function dataProviderResourcesInInvalidState(): array
+    public function dataProviderResourcesInInvalidState(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::WRITABLE_ONLY) as $resource) {
-            $result[] = [$resource];
+            yield [$resource];
         }
-
-        return $result;
     }
 }

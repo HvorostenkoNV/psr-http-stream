@@ -130,35 +130,37 @@ class StreamGetMetadataTest extends AbstractStreamTestCase
         }
     }
 
-    public function dataProviderResourcesWithMetadata(): array
+    public function dataProviderResourcesWithMetadata(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::ALL) as $resource) {
-            $result[] = [$resource, stream_get_meta_data($resource)];
+            yield [$resource, stream_get_meta_data($resource)];
         }
+
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
+            $content = (new TextGenerator())->generate();
             fwrite($resource, $content);
-            $result[]   = [$resource, stream_get_meta_data($resource)];
+
+            yield [$resource, stream_get_meta_data($resource)];
         }
+
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
+            $content = (new TextGenerator())->generate();
             fwrite($resource, $content);
             rewind($resource);
-            $result[]   = [$resource, stream_get_meta_data($resource)];
+
+            yield [$resource, stream_get_meta_data($resource)];
         }
+
         foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
+            $content = (new TextGenerator())->generate();
             fwrite($resource, $content);
             fseek($resource, (int) (strlen($content) / 2));
-            $result[]   = [$resource, stream_get_meta_data($resource)];
-        }
 
-        return $result;
+            yield [$resource, stream_get_meta_data($resource)];
+        }
     }
 
-    public function dataProviderResourcesWithMetadataByKey(): array
+    public function dataProviderResourcesWithMetadataByKey(): iterable
     {
         $availableKeys      = array_keys(self::METADATA_DEFAULT_VALUES);
         $unavailableKeys    = [
@@ -166,22 +168,22 @@ class StreamGetMetadataTest extends AbstractStreamTestCase
             'someKey2',
             'someKey3',
         ];
-        $result             = [];
 
         foreach ($availableKeys as $key) {
             foreach ($this->dataProviderResourcesWithMetadata() as $resourceWithMetadata) {
                 $resource   = $resourceWithMetadata[0];
                 $paramValue = $resourceWithMetadata[1][$key] ?? null;
-                $result[]   = [$resource, $key, $paramValue];
-            }
-        }
-        foreach ($unavailableKeys as $key) {
-            foreach ($this->dataProviderResourcesWithMetadata() as $resourceWithMetadata) {
-                $resource   = $resourceWithMetadata[0];
-                $result[]   = [$resource, $key, null];
+
+                yield [$resource, $key, $paramValue];
             }
         }
 
-        return $result;
+        foreach ($unavailableKeys as $key) {
+            foreach ($this->dataProviderResourcesWithMetadata() as $resourceWithMetadata) {
+                $resource = $resourceWithMetadata[0];
+
+                yield [$resource, $key, null];
+            }
+        }
     }
 }

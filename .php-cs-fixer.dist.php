@@ -29,7 +29,7 @@ return (new Config())
         'class_attributes_separation'                       => [
             'elements'                                          => [
                 'const'                                             => 'none',
-                'method'                                            => 'none',
+                'method'                                            => 'one',
                 'property'                                          => 'none',
                 'trait_import'                                      => 'none',
                 'case'                                              => 'none',

@@ -66,31 +66,33 @@ class StreamEndOfFileTest extends AbstractStreamTestCase
         );
     }
 
-    public function dataProviderResourcesWithValues(): array
+    public function dataProviderResourcesWithValues(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::ALL) as $resource) {
-            $result[] = [$resource, false];
-        }
-        foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
-            fwrite($resource, $content);
-            $result[]   = [$resource, false];
-        }
-        foreach ($this->generateResources(AccessModeType::WRITABLE_ONLY) as $resource) {
-            $content    = (new TextGenerator())->generate();
-            fwrite($resource, $content);
-            $this->reachResourceEnd($resource);
-            $result[]   = [$resource, false];
-        }
-        foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
-            $content    = (new TextGenerator())->generate();
-            fwrite($resource, $content);
-            $this->reachResourceEnd($resource);
-            $result[]   = [$resource, true];
+            yield [$resource, false];
         }
 
-        return $result;
+        foreach ($this->generateResources(AccessModeType::WRITABLE) as $resource) {
+            $content = (new TextGenerator())->generate();
+            fwrite($resource, $content);
+
+            yield [$resource, false];
+        }
+
+        foreach ($this->generateResources(AccessModeType::WRITABLE_ONLY) as $resource) {
+            $content = (new TextGenerator())->generate();
+            fwrite($resource, $content);
+            $this->reachResourceEnd($resource);
+
+            yield [$resource, false];
+        }
+
+        foreach ($this->generateResources(AccessModeType::READABLE_AND_WRITABLE) as $resource) {
+            $content = (new TextGenerator())->generate();
+            fwrite($resource, $content);
+            $this->reachResourceEnd($resource);
+
+            yield [$resource, true];
+        }
     }
 }

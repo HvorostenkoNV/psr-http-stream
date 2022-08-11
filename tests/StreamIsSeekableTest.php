@@ -59,14 +59,10 @@ class StreamIsSeekableTest extends AbstractStreamTestCase
         );
     }
 
-    public function dataProviderResourcesWithSeekingStateValues(): array
+    public function dataProviderResourcesWithSeekingStateValues(): iterable
     {
-        $result = [];
-
         foreach ($this->generateResources(AccessModeType::ALL) as $resource) {
-            $result[] = [$resource, true];
+            yield [$resource, true];
         }
-
-        return $result;
     }
 }

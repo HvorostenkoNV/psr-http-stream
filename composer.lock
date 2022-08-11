@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "hnv/psr-http-helper",
-            "version": "2.0.3",
+            "version": "2.0.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/HvorostenkoNV/psr-http-helper.git",
-                "reference": "ba5d2853bd8e03bf99454ee7f3abfa07d17858aa"
+                "reference": "1c90518311d5e209c28c9e8e914c8e6bca3e3fdd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/HvorostenkoNV/psr-http-helper/zipball/ba5d2853bd8e03bf99454ee7f3abfa07d17858aa",
-                "reference": "ba5d2853bd8e03bf99454ee7f3abfa07d17858aa",
+                "url": "https://api.github.com/repos/HvorostenkoNV/psr-http-helper/zipball/1c90518311d5e209c28c9e8e914c8e6bca3e3fdd",
+                "reference": "1c90518311d5e209c28c9e8e914c8e6bca3e3fdd",
                 "shasum": ""
             },
             "require": {
@@ -67,9 +67,9 @@
             ],
             "support": {
                 "issues": "https://github.com/HvorostenkoNV/psr-http-helper/issues",
-                "source": "https://github.com/HvorostenkoNV/psr-http-helper/tree/2.0.3"
+                "source": "https://github.com/HvorostenkoNV/psr-http-helper/tree/2.0.6"
             },
-            "time": "2022-07-16T08:32:40+00:00"
+            "time": "2022-08-11T08:27:05+00:00"
         },
         {
             "name": "hnv/psr-http-interfaces",
