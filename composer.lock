@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "hnv/psr-http-helper",
-            "version": "2.0.6",
+            "version": "2.0.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/HvorostenkoNV/psr-http-helper.git",
-                "reference": "1c90518311d5e209c28c9e8e914c8e6bca3e3fdd"
+                "reference": "8238299430f9b503542836c09fa871a9ad137acf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/HvorostenkoNV/psr-http-helper/zipball/1c90518311d5e209c28c9e8e914c8e6bca3e3fdd",
-                "reference": "1c90518311d5e209c28c9e8e914c8e6bca3e3fdd",
+                "url": "https://api.github.com/repos/HvorostenkoNV/psr-http-helper/zipball/8238299430f9b503542836c09fa871a9ad137acf",
+                "reference": "8238299430f9b503542836c09fa871a9ad137acf",
                 "shasum": ""
             },
             "require": {
@@ -67,22 +67,22 @@
             ],
             "support": {
                 "issues": "https://github.com/HvorostenkoNV/psr-http-helper/issues",
-                "source": "https://github.com/HvorostenkoNV/psr-http-helper/tree/2.0.6"
+                "source": "https://github.com/HvorostenkoNV/psr-http-helper/tree/2.0.7"
             },
-            "time": "2022-08-11T08:27:05+00:00"
+            "time": "2022-09-23T06:54:46+00:00"
         },
         {
             "name": "hnv/psr-http-interfaces",
-            "version": "3.0.3",
+            "version": "3.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/HvorostenkoNV/psr-http-interfaces.git",
-                "reference": "d209e20083a6442d790670a9dc85da61a551be71"
+                "reference": "daf99f64eda0f7d23f8418e8be51d1a0f6bcd7e9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/HvorostenkoNV/psr-http-interfaces/zipball/d209e20083a6442d790670a9dc85da61a551be71",
-                "reference": "d209e20083a6442d790670a9dc85da61a551be71",
+                "url": "https://api.github.com/repos/HvorostenkoNV/psr-http-interfaces/zipball/daf99f64eda0f7d23f8418e8be51d1a0f6bcd7e9",
+                "reference": "daf99f64eda0f7d23f8418e8be51d1a0f6bcd7e9",
                 "shasum": ""
             },
             "require": {
@@ -113,9 +113,9 @@
             ],
             "support": {
                 "issues": "https://github.com/HvorostenkoNV/psr-http-interfaces/issues",
-                "source": "https://github.com/HvorostenkoNV/psr-http-interfaces/tree/3.0.3"
+                "source": "https://github.com/HvorostenkoNV/psr-http-interfaces/tree/3.0.4"
             },
-            "time": "2022-07-06T14:25:19+00:00"
+            "time": "2022-09-23T06:31:47+00:00"
         }
     ],
     "packages-dev": [

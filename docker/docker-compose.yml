@@ -10,7 +10,7 @@ networks:
 
 services:
   php:
-    build: php
+    image: 'katred3000/php:8.1-with-ssh'
     container_name: 'psr-http-stream-php'
     volumes:
       - ../:/var/www/html
