@@ -2,7 +2,7 @@
 ### build and up all containers
 ```
 cd docker
-docker-compose up -d
+docker compose up -d
 ```
 ### installation
 ###### go into PHP container
