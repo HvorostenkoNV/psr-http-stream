@@ -1,27 +1,20 @@
 # PSR Stream pack
-### build and up all containers
+### Installation
 ```
 cd docker
 docker compose up -d
-```
-### installation
-###### go into PHP container
-```
-cd docker
 docker exec -it psr-http-stream-php sh
 ```
-###### run composer
+###### or you can use "make" utility
 ```
+apt install make
+make up # up all containers and get into php container
+make down # down all containers
+```
+###### install all dependencies
+```
+# get into php container
 composer install
-```
-### hotkeys
-###### up all containers and get into php container
-```
-./up.sh
-```
-###### down all containers
-```
-./down.sh
 ```
 ### creating SSH connection to docker PHP container
 * go to File | Settings | Tools | SSH Configurations
